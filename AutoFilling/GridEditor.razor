@@ -26,7 +26,6 @@
     </div>
 </div>
 
-<!-- GRID VISUAL -->
 <div class="grid-contenedor" 
      style="grid-template-columns: repeat(@Columnas, 40px); 
             grid-template-rows: repeat(@Filas, 40px);">
@@ -40,7 +39,6 @@
             
             <div class="casilla @ObtenerClase(celda, fila, col)" 
                  @onclick="() => AlClickarCasilla(fila, col)">
-                 
                 @if (celda.Ocupado)
                 {
                     <span class="numero">@celda.Valor</span>
@@ -57,36 +55,23 @@
     .instrucciones { margin-left: auto; font-size: 0.9em; color: #555; }
     .esperando { color: blue; font-weight: bold; }
 
-    .grid-contenedor {
-        display: grid;
-        gap: 1px;
-        background-color: #ccc;
-        border: 1px solid #999;
-        width: fit-content;
-        user-select: none;
-    }
-
-    .casilla {
-        background-color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        font-family: monospace;
-        font-size: 1.2em;
-    }
-
+    .grid-contenedor { display: grid; gap: 1px; background-color: #ccc; border: 1px solid #999; width: fit-content; user-select: none; }
+    .casilla { background-color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-family: monospace; font-size: 1.2em; }
     .casilla:hover { background-color: #f0f0f0; }
     .seleccionando { background-color: #b3d9ff !important; }
     .ocupada { background-color: #fff; color: black; font-weight: bold; }
 </style>
 
 @code {
+    public enum TipoBase { Nada, Centro, Borde, Esquina }
+
     public class Celda
     {
-        public int Valor { get; set; } 
+        public int Valor { get; set; }
         public bool Ocupado { get; set; } = false;
         public Guid? RectanguloId { get; set; }
+        public TipoBase Tipo { get; set; } = TipoBase.Nada;
+        public bool EsForzadaA1 { get; set; } = false; 
     }
 
     public class Rectangulo
@@ -98,25 +83,19 @@
         public int ColFin { get; set; }
     }
 
-    public int Filas { get; set; } = 5;
+    public int Filas { get; set; } = 8;
     public int Columnas { get; set; } = 10;
     public Celda[,] Matriz { get; set; } = new Celda[0,0];
     private List<Rectangulo> RectangulosActivos = new();
     private (int r, int c)? inicioSeleccion = null;
 
-    protected override void OnInitialized()
-    {
-        ReconstruirMatriz();
-    }
+    protected override void OnInitialized() => ReconstruirMatriz();
 
     void AlClickarCasilla(int fila, int col)
     {
         if (Matriz[fila, col].Ocupado) return;
 
-        if (inicioSeleccion == null)
-        {
-            inicioSeleccion = (fila, col);
-        }
+        if (inicioSeleccion == null) inicioSeleccion = (fila, col);
         else
         {
             var inicio = inicioSeleccion.Value;
@@ -127,42 +106,28 @@
 
     void IntentarCrearRectangulo(int r1, int c1, int r2, int c2)
     {
-        int rMin = Math.Min(r1, r2);
-        int rMax = Math.Max(r1, r2);
-        int cMin = Math.Min(c1, c2);
-        int cMax = Math.Max(c1, c2);
+        int rMin = Math.Min(r1, r2); int rMax = Math.Max(r1, r2);
+        int cMin = Math.Min(c1, c2); int cMax = Math.Max(c1, c2);
 
         for (int r = rMin; r <= rMax; r++)
-        {
             for (int c = cMin; c <= cMax; c++)
-            {
                 if (Matriz[r, c].Ocupado) return;
-            }
-        }
 
-        var nuevoRect = new Rectangulo 
-        { 
-            FilaInicio = rMin, FilaFin = rMax, 
-            ColInicio = cMin, ColFin = cMax 
-        };
-        RectangulosActivos.Add(nuevoRect);
-
+        RectangulosActivos.Add(new Rectangulo { FilaInicio = rMin, FilaFin = rMax, ColInicio = cMin, ColFin = cMax });
         ReconstruirMatriz();
     }
 
     void ReconstruirMatriz()
     {
+
         Matriz = new Celda[Filas, Columnas];
         for (int i = 0; i < Filas; i++)
             for (int j = 0; j < Columnas; j++)
                 Matriz[i, j] = new Celda();
 
-        foreach (var rect in RectangulosActivos)
-        {
-            AplicarRectanguloBase(rect);
-        }
+        foreach (var rect in RectangulosActivos) AplicarRectanguloBase(rect);
 
-        AplicarInteracciones();
+        AplicarReglasAvanzadas();
     }
 
     void AplicarRectanguloBase(Rectangulo rect)
@@ -178,76 +143,123 @@
                 bool esBordeY = (r == rect.FilaInicio || r == rect.FilaFin);
                 bool esBordeX = (c == rect.ColInicio || c == rect.ColFin);
 
-                if (esBordeY && esBordeX) celda.Valor = 2; // Esquina Base
-                else if (esBordeY || esBordeX) celda.Valor = 1; // Borde Base
-                else celda.Valor = 0; // Centro
-            }
-        }
-    }
-
-    void AplicarInteracciones()
-    {
-        for (int r = 0; r < Filas; r++)
-        {
-            for (int c = 0; c < Columnas; c++)
-            {
-                var celda = Matriz[r, c];
-                if (!celda.Ocupado || celda.Valor == 0) continue;
-
-                if (TieneVecinoConflictivo(r, c, -1, 0, celda) || 
-                    TieneVecinoConflictivo(r, c, 1, 0, celda) ||  
-                    TieneVecinoConflictivo(r, c, 0, -1, celda) || 
-                    TieneVecinoConflictivo(r, c, 0, 1, celda))    
+                if (esBordeY && esBordeX) 
                 {
-                    if (celda.Valor == 1) celda.Valor = 4;
-                    
-                    if (celda.Valor == 2) celda.Valor = 3;
+                    celda.Tipo = TipoBase.Esquina;
+                    celda.Valor = 2; //esquina Base
+                }
+                else if (esBordeY || esBordeX) 
+                {
+                    celda.Tipo = TipoBase.Borde;
+                    celda.Valor = 1; //base
+                }
+                else 
+                {
+                    celda.Tipo = TipoBase.Centro;
+                    celda.Valor = 0; // Centro
                 }
             }
         }
     }
 
-    bool TieneVecinoConflictivo(int r, int c, int dr, int dc, Celda miCelda)
+    void AplicarReglasAvanzadas()
     {
-        int nr = r + dr;
-        int nc = c + dc;
-
-        if (nr < 0 || nr >= Filas || nc < 0 || nc >= Columnas) return false;
-
-        var vecino = Matriz[nr, nc];
-
         
-        if (!vecino.Ocupado) return false;
-        if (vecino.RectanguloId == miCelda.RectanguloId) return false;
+        for (int r = 0; r < Filas; r++)
+        {
+            for (int c = 0; c < Columnas; c++)
+            {
+                var celda = Matriz[r, c];
+                if (!celda.Ocupado || celda.Tipo != TipoBase.Esquina) continue;
 
-        bool soyBorde = (miCelda.Valor == 1 || miCelda.Valor == 4);
-        bool vecinoEsBorde = (vecino.Valor == 1 || vecino.Valor == 4);
-        
-        bool soyEsquina = (miCelda.Valor == 2 || miCelda.Valor == 3);
-        bool vecinoEsEsquina = (vecino.Valor == 2 || vecino.Valor == 3);
+                var vecinosEsquina = ObtenerVecinosDeTipo(r, c, TipoBase.Esquina);
+                
+                if (vecinosEsquina.Count == 2) 
+                {
+                    
+                    celda.Valor = 6;
+                    
+                    foreach(var vecinoPos in vecinosEsquina)
+                    {
+                        var vecino = Matriz[vecinoPos.r, vecinoPos.c];
+                        vecino.Valor = 1;
+                        vecino.EsForzadaA1 = true; 
+                    }
+                }
+            }
+        }
 
-        if (soyBorde && vecinoEsBorde) return true;
-        if (soyEsquina && vecinoEsEsquina) return true;
+        for (int r = 0; r < Filas; r++)
+        {
+            for (int c = 0; c < Columnas; c++)
+            {
+                var celda = Matriz[r, c];
+                if (celda.Valor == 6 || celda.EsForzadaA1) continue;
+                
+                if (!celda.Ocupado || celda.Tipo != TipoBase.Esquina) continue;
 
-        return false;
+                var vecinosEsquina = ObtenerVecinosDeTipo(r, c, TipoBase.Esquina);
+                if (vecinosEsquina.Count >= 1)
+                {
+                    celda.Valor = 3;
+                }
+            }
+        }
+
+        for (int r = 0; r < Filas; r++)
+        {
+            for (int c = 0; c < Columnas; c++)
+            {
+                var celda = Matriz[r, c];
+                if (celda.EsForzadaA1) continue;
+
+                if (!celda.Ocupado || celda.Tipo != TipoBase.Borde) continue;
+
+                var vecinosBorde = ObtenerVecinosDeTipo(r, c, TipoBase.Borde);
+                if (vecinosBorde.Count >= 1)
+                {
+                    celda.Valor = 4;
+                }
+            }
+        }
+    }
+
+    List<(int r, int c)> ObtenerVecinosDeTipo(int r, int c, TipoBase tipoBuscado)
+    {
+        List<(int, int)> encontrados = new();
+        int[] dr = { -1, 1, 0, 0 };
+        int[] dc = { 0, 0, -1, 1 };
+
+        var miCelda = Matriz[r, c];
+
+        for (int i = 0; i < 4; i++)
+        {
+            int nr = r + dr[i];
+            int nc = c + dc[i];
+
+            if (nr >= 0 && nr < Filas && nc >= 0 && nc < Columnas)
+            {
+                var vecino = Matriz[nr, nc];
+                if (vecino.Ocupado && 
+                    vecino.RectanguloId != miCelda.RectanguloId && 
+                    vecino.Tipo == tipoBuscado) 
+                {
+                    encontrados.Add((nr, nc));
+                }
+            }
+        }
+        return encontrados;
     }
 
     void CambiarDimensiones(int deltaFila, int deltaCol)
     {
         if (Filas + deltaFila < 1 || Columnas + deltaCol < 1) return;
-        Filas += deltaFila;
-        Columnas += deltaCol;
-        
+        Filas += deltaFila; Columnas += deltaCol;
         RectangulosActivos.RemoveAll(rect => rect.FilaFin >= Filas || rect.ColFin >= Columnas);
         ReconstruirMatriz();
     }
-
     void CancelarSeleccion() => inicioSeleccion = null;
-
-    string ObtenerClase(Celda celda, int r, int c)
-    {
-        if (celda.Ocupado) return "ocupada";
-        if (inicioSeleccion != null && inicioSeleccion.Value.r == r && inicioSeleccion.Value.c == c) return "seleccionando";
-        return "";
-    }
+    string ObtenerClase(Celda c, int r, int i) 
+        => (c.Ocupado ? "ocupada " : "") + 
+           (inicioSeleccion != null && inicioSeleccion.Value.r == r && inicioSeleccion.Value.c == i ? "seleccionando" : "");
 }

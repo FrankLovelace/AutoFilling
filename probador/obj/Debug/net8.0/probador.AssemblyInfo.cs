@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("probador")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c88e6846e56e9ac12fb49af878d0fd6a96624680")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a317f1173b636752d11562849055971ec3c438a6")]
 [assembly: System.Reflection.AssemblyProductAttribute("probador")]
 [assembly: System.Reflection.AssemblyTitleAttribute("probador")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
