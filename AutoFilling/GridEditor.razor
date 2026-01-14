@@ -16,19 +16,19 @@
     <div class="instrucciones">
         @if (inicioSeleccion == null)
         {
-            <span>Haz clic para iniciar un rectángulo</span>
+            <span>Haz clic para iniciar cama</span>
         }
         else
         {
-            <span class="esperando">Haz clic en otro punto para cerrar</span>
+            <span class="esperando">Cierra la cama</span>
             <button class="btn-cancelar" @onclick="CancelarSeleccion">Cancelar</button>
         }
     </div>
 </div>
 
 <div class="grid-contenedor" 
-     style="grid-template-columns: repeat(@Columnas, 50px); 
-            grid-template-rows: repeat(@Filas, 50px);">
+     style="grid-template-columns: repeat(@Columnas, 60px); 
+            grid-template-rows: repeat(@Filas, 60px);">
             
     @for (int r = 0; r < Filas; r++)
     {
@@ -41,11 +41,12 @@
                  @onclick="() => AlClickarCasilla(fila, col)">
                 @if (celda.Ocupado)
                 {
-                    <div class="contenido-celda">
-                        <span class="numero">@celda.Valor</span>
-                        @if (celda.Valor != 0) 
+                    <div class="contenido-celda @celda.EstiloCss">
+                      
+                        <span class="modelo-tag">@celda.Modelo3D</span>
+                        
+                        @if (celda.Modelo3D != "Lona") 
                         {
-                            <!-- La flecha visual -->
                             <span class="flecha" style="transform: rotate(@(celda.Rotacion)deg);">↑</span>
                             <span class="debug-rotacion">@celda.Rotacion°</span>
                         }
@@ -63,30 +64,34 @@
     .instrucciones { margin-left: auto; font-size: 0.9em; color: #555; }
     .esperando { color: blue; font-weight: bold; }
 
-    .grid-contenedor { display: grid; gap: 1px; background-color: #ccc; border: 1px solid #999; width: fit-content; user-select: none; }
+    .grid-contenedor { display: grid; gap: 1px; background-color: #333; border: 1px solid #999; width: fit-content; user-select: none; }
     
-    .casilla { background-color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; }
+    .casilla { background-color: #f8f9fa; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; font-size: 0.8em;}
     .contenido-celda { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
-    .numero { font-weight: bold; font-size: 1.1em; line-height: 1; }
-    .flecha { font-size: 1.2em; color: #ff6600; display: block; transition: transform 0.3s ease; line-height: 0.8; }
-    .debug-rotacion { font-size: 0.6em; color: #999; margin-top: -2px; }
+    
+    /* Estilos visuales según tipo */
+    .estilo-lona { background-color: #bbdefb; color: #0d47a1; } /* Azul claro */
+    .estilo-pad { background-color: #fff9c4; color: #f57f17; } /* Amarillo (Unión) */
+    .estilo-malla { background-color: #ffcdd2; color: #b71c1c; border: 2px solid #b71c1c; } /* Rojo (Peligro/Malla) */
 
-    .casilla:hover { background-color: #f0f0f0; }
+    .modelo-tag { font-weight: bold; font-size: 0.9em; margin-bottom: 2px; text-align: center; }
+    .flecha { font-size: 1.5em; color: inherit; display: block; transition: transform 0.3s ease; line-height: 0.8; opacity: 0.7; }
+    .debug-rotacion { font-size: 0.7em; opacity: 0.5; }
+
+    .casilla:hover { filter: brightness(0.95); }
     .seleccionando { background-color: #b3d9ff !important; }
-    .ocupada { background-color: #fff; color: black; }
 </style>
 
 @code {
-    public enum TipoBase { Nada, Centro, Borde, Esquina }
-
     public class Celda
     {
-        public int Valor { get; set; }
-        public int Rotacion { get; set; } 
         public bool Ocupado { get; set; } = false;
-        public Guid? RectanguloId { get; set; }
-        public TipoBase Tipo { get; set; } = TipoBase.Nada;
-        public bool Visitado { get; set; } = false; 
+        public Guid RectanguloId { get; set; }
+        
+        public string Modelo3D { get; set; } = ""; 
+        public int Rotacion { get; set; } 
+        
+        public string EstiloCss { get; set; } = "";
     }
 
     public class Rectangulo
@@ -138,235 +143,102 @@
             for (int j = 0; j < Columnas; j++)
                 Matriz[i, j] = new Celda();
 
-        foreach (var rect in RectangulosActivos) AplicarRectanguloBase(rect);
-        AplicarReglasAvanzadas();
+        // 1. Llenar ocupación base
+        foreach (var rect in RectangulosActivos)
+        {
+            for (int r = rect.FilaInicio; r <= rect.FilaFin; r++)
+                for (int c = rect.ColInicio; c <= rect.ColFin; c++)
+                {
+                    Matriz[r, c].Ocupado = true;
+                    Matriz[r, c].RectanguloId = rect.Id;
+                }
+        }
+
+        // 2. Calcular Lógica de Perímetro
+        foreach (var rect in RectangulosActivos)
+        {
+            CalcularLogicaRectangulo(rect);
+        }
     }
 
-    void AplicarRectanguloBase(Rectangulo rect)
+    void CalcularLogicaRectangulo(Rectangulo rect)
     {
         for (int r = rect.FilaInicio; r <= rect.FilaFin; r++)
         {
             for (int c = rect.ColInicio; c <= rect.ColFin; c++)
             {
                 var celda = Matriz[r, c];
-                celda.Ocupado = true;
-                celda.RectanguloId = rect.Id;
-
+                
+                // Determinar si soy Borde de MI rectángulo
                 bool esTop = (r == rect.FilaInicio);
                 bool esBottom = (r == rect.FilaFin);
                 bool esLeft = (c == rect.ColInicio);
                 bool esRight = (c == rect.ColFin);
 
-                if ((esTop || esBottom) && (esLeft || esRight)) 
+                if (!esTop && !esBottom && !esLeft && !esRight)
                 {
-                    celda.Tipo = TipoBase.Esquina;
-                    celda.Valor = 2;
-
-                    if (esTop && esLeft) celda.Rotacion = 0;       
-                    if (esTop && esRight) celda.Rotacion = 90;     
-                    if (esBottom && esRight) celda.Rotacion = 180; 
-                    if (esBottom && esLeft) celda.Rotacion = 270;  
+                    // SOY CENTRO (Lona de salto)
+                    celda.Modelo3D = "Lona";
+                    celda.EstiloCss = "estilo-lona";
+                    celda.Rotacion = 0; 
+                    continue;
                 }
-                else if (esTop || esBottom || esLeft || esRight) 
+
+                
+                bool necesitoMalla = false;
+
+                
+                
+                if (esTop)
                 {
-                    celda.Tipo = TipoBase.Borde;
-                    celda.Valor = 1;
-                    if (esLeft) celda.Rotacion = 0;      
-                    if (esTop) celda.Rotacion = 90;      
-                    if (esRight) celda.Rotacion = 180;   
-                    if (esBottom) celda.Rotacion = 270;  
+                    celda.Rotacion = 180; 
+                    necesitoMalla = EsVacio(r - 1, c); 
                 }
-                else 
+                else if (esBottom)
                 {
-                    celda.Tipo = TipoBase.Centro;
-                    celda.Valor = 0;
-                    celda.Rotacion = 0;
+                    celda.Rotacion = 0; 
+                    necesitoMalla = EsVacio(r + 1, c);
                 }
-            }
-        }
-    }
-
-    void AplicarReglasAvanzadas()
-    {
-        for (int r = 0; r < Filas; r++)
-            for (int c = 0; c < Columnas; c++)
-                Matriz[r, c].Visitado = false;
-
-        for (int r = 0; r < Filas; r++)
-        {
-            for (int c = 0; c < Columnas; c++)
-            {
-                var celda = Matriz[r, c];
-                if (celda.Ocupado && celda.Tipo == TipoBase.Esquina && !celda.Visitado)
+                else if (esLeft)
                 {
-                    var grupo = ObtenerGrupoConectado(r, c, TipoBase.Esquina);
-                    
-                    if (grupo.Count == 2)
-                    {
-                       
-                        var p1 = grupo[0];
-                        var p2 = grupo[1];
-                        int nuevaRot = 0;
-
-                        if (p1.r == p2.r) 
-                        {
-
-                            var rect = RectangulosActivos.FirstOrDefault(x => x.Id == Matriz[p1.r, p1.c].RectanguloId);
-                            if (rect != null)
-                            {
-                                if (p1.r == rect.FilaInicio) nuevaRot = 90; 
-                                else nuevaRot = 270; 
-                            }
-                        }
-                        else
-                        {
-                            var rect = RectangulosActivos.FirstOrDefault(x => x.Id == Matriz[p1.r, p1.c].RectanguloId);
-                            if (rect != null)
-                            {
-                                if (p1.c == rect.ColInicio) nuevaRot = 0; 
-                                else nuevaRot = 180; 
-                            }
-                        }
-
-                        foreach(var pos in grupo) 
-                        {
-                            Matriz[pos.r, pos.c].Valor = 3;
-                            Matriz[pos.r, pos.c].Rotacion = nuevaRot;
-                        }
-                    }
-                    else if (grupo.Count == 3)
-                    {
-                        foreach(var pos in grupo)
-                        {
-                            var miCelda = Matriz[pos.r, pos.c];
-                            int vecinosEnGrupo = ContarVecinosEnLista(pos.r, pos.c, grupo);
-                            
-                            if (vecinosEnGrupo >= 2) 
-                            {
-                                miCelda.Valor = 6;
-                                miCelda.Rotacion = CalcularRotacionT(pos.r, pos.c, grupo);
-                            }
-                            else 
-                            {
-                                miCelda.Valor = 1;
-                                var vecino6 = grupo.FirstOrDefault(v => Matriz[v.r, v.c].Valor == 6); 
-                                var rect = RectangulosActivos.FirstOrDefault(x => x.Id == miCelda.RectanguloId);
-                                if (rect != null)
-                                {
-                                    if (pos.r == rect.FilaInicio) miCelda.Rotacion = 90;
-                                    else if (pos.r == rect.FilaFin) miCelda.Rotacion = 270;
-                                    else if (pos.c == rect.ColInicio) miCelda.Rotacion = 0;
-                                    else miCelda.Rotacion = 180;
-                                }
-                            }
-                        }
-                    }
-                    else if (grupo.Count >= 4)
-                    {
-                        foreach(var pos in grupo) 
-                        {
-                            Matriz[pos.r, pos.c].Valor = 5;
-                            Matriz[pos.r, pos.c].Rotacion = 0; 
-                        }
-                    }
+                    celda.Rotacion = 90;
+                    necesitoMalla = EsVacio(r, c - 1);
                 }
-            }
-        }
-
-        // 2. REGLA DE BORDES (El 4)
-        for (int r = 0; r < Filas; r++)
-        {
-            for (int c = 0; c < Columnas; c++)
-            {
-                var celda = Matriz[r, c];
-                if (celda.Ocupado && celda.Tipo == TipoBase.Borde)
+                else if (esRight)
                 {
-                    var vecinosBorde = ObtenerVecinosDeTipo(r, c, TipoBase.Borde);
-                    if (vecinosBorde.Count > 0)
-                    {
-                        celda.Valor = 4;
-                    }
+                    celda.Rotacion = 270;
+                    necesitoMalla = EsVacio(r, c + 1);
+                }
+
+               
+                if (esTop && esLeft) 
+                {
+                     necesitoMalla = EsVacio(r - 1, c) || EsVacio(r, c - 1);
+                     celda.Rotacion = 135; 
+                }
+                else if (esTop && esRight) { necesitoMalla = EsVacio(r - 1, c) || EsVacio(r, c + 1); celda.Rotacion = 225; }
+                else if (esBottom && esRight) { necesitoMalla = EsVacio(r + 1, c) || EsVacio(r, c + 1); celda.Rotacion = 315; }
+                else if (esBottom && esLeft) { necesitoMalla = EsVacio(r + 1, c) || EsVacio(r, c - 1); celda.Rotacion = 45; }
+
+                if (necesitoMalla)
+                {
+                    celda.Modelo3D = "Malla";
+                    celda.EstiloCss = "estilo-malla";
+                }
+                else
+                {
+                    celda.Modelo3D = "Pad"; 
+                    celda.EstiloCss = "estilo-pad";
                 }
             }
         }
     }
 
-    int CalcularRotacionT(int r, int c, List<(int r, int c)> grupo)
+    bool EsVacio(int r, int c)
     {
-        var otros = grupo.Where(x => x.r != r || x.c != c).ToList();
-        if (otros.Count < 2) return 0;
-        var v1 = otros[0]; var v2 = otros[1];
-
-        if (v1.r == v2.r)
-        {
-            
-             var rect = RectangulosActivos.FirstOrDefault(x => x.Id == Matriz[r, c].RectanguloId);
-             if (rect != null)
-             {
-                 if (r == rect.FilaInicio) return 0; // T invertida
-                 if (r == rect.FilaFin) return 180; // T normal
-             }
-             return 0;
-        }
-        if (v1.c == v2.c)
-        {
-             return 90;
-        }
-        return 0;
-    }
-
-    List<(int r, int c)> ObtenerGrupoConectado(int startR, int startC, TipoBase tipo)
-    {
-        var grupo = new List<(int r, int c)>();
-        var cola = new Queue<(int r, int c)>();
-        cola.Enqueue((startR, startC));
-        Matriz[startR, startC].Visitado = true;
-        grupo.Add((startR, startC));
-
-        while(cola.Count > 0)
-        {
-            var actual = cola.Dequeue();
-            var vecinos = ObtenerVecinosDeTipo(actual.r, actual.c, tipo);
-            foreach(var v in vecinos)
-            {
-                if (!Matriz[v.r, v.c].Visitado)
-                {
-                    Matriz[v.r, v.c].Visitado = true;
-                    grupo.Add(v);
-                    cola.Enqueue(v);
-                }
-            }
-        }
-        return grupo;
-    }
-
-    int ContarVecinosEnLista(int r, int c, List<(int r, int c)> lista)
-    {
-        int count = 0;
-        int[] dr = { -1, 1, 0, 0 }; int[] dc = { 0, 0, -1, 1 };
-        foreach(var item in lista)
-            for(int i=0; i<4; i++)
-                if(r + dr[i] == item.r && c + dc[i] == item.c) { count++; break; }
-        return count;
-    }
-
-    List<(int r, int c)> ObtenerVecinosDeTipo(int r, int c, TipoBase tipoBuscado)
-    {
-        List<(int, int)> encontrados = new();
-        int[] dr = { -1, 1, 0, 0 }; int[] dc = { 0, 0, -1, 1 };
-        var miCelda = Matriz[r, c];
-
-        for (int i = 0; i < 4; i++)
-        {
-            int nr = r + dr[i]; int nc = c + dc[i];
-            if (nr >= 0 && nr < Filas && nc >= 0 && nc < Columnas)
-            {
-                var vecino = Matriz[nr, nc];
-                if (vecino.Ocupado && vecino.RectanguloId != miCelda.RectanguloId && vecino.Tipo == tipoBuscado) 
-                    encontrados.Add((nr, nc));
-            }
-        }
-        return encontrados;
+        if (r < 0 || r >= Filas || c < 0 || c >= Columnas) return true;
+        
+        return !Matriz[r, c].Ocupado;
     }
 
     void CambiarDimensiones(int deltaFila, int deltaCol)
