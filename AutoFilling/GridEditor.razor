@@ -45,6 +45,7 @@
                         <span class="numero">@celda.Valor</span>
                         @if (celda.Valor != 0) 
                         {
+                            <!-- La flecha visual -->
                             <span class="flecha" style="transform: rotate(@(celda.Rotacion)deg);">↑</span>
                             <span class="debug-rotacion">@celda.Rotacion°</span>
                         }
@@ -64,33 +65,10 @@
 
     .grid-contenedor { display: grid; gap: 1px; background-color: #ccc; border: 1px solid #999; width: fit-content; user-select: none; }
     
-    .casilla { 
-        background-color: white; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        cursor: pointer; 
-        overflow: hidden;
-    }
-    
-    .contenido-celda {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        width: 100%; height: 100%;
-    }
-
+    .casilla { background-color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; }
+    .contenido-celda { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
     .numero { font-weight: bold; font-size: 1.1em; line-height: 1; }
-    
-    .flecha {
-        font-size: 1.2em;
-        color: #ff6600;
-        display: block;
-        transition: transform 0.3s ease;
-        line-height: 0.8;
-    }
-    
+    .flecha { font-size: 1.2em; color: #ff6600; display: block; transition: transform 0.3s ease; line-height: 0.8; }
     .debug-rotacion { font-size: 0.6em; color: #999; margin-top: -2px; }
 
     .casilla:hover { background-color: #f0f0f0; }
@@ -161,7 +139,6 @@
                 Matriz[i, j] = new Celda();
 
         foreach (var rect in RectangulosActivos) AplicarRectanguloBase(rect);
-        
         AplicarReglasAvanzadas();
     }
 
@@ -184,8 +161,9 @@
                 {
                     celda.Tipo = TipoBase.Esquina;
                     celda.Valor = 2;
+
                     if (esTop && esLeft) celda.Rotacion = 0;       
-                    if (esTop && esRight) celda.Rotacion = 90;    
+                    if (esTop && esRight) celda.Rotacion = 90;     
                     if (esBottom && esRight) celda.Rotacion = 180; 
                     if (esBottom && esLeft) celda.Rotacion = 270;  
                 }
@@ -193,10 +171,9 @@
                 {
                     celda.Tipo = TipoBase.Borde;
                     celda.Valor = 1;
-
                     if (esLeft) celda.Rotacion = 0;      
-                    if (esTop) celda.Rotacion = 90;     
-                    if (esRight) celda.Rotacion = 180;  
+                    if (esTop) celda.Rotacion = 90;      
+                    if (esRight) celda.Rotacion = 180;   
                     if (esBottom) celda.Rotacion = 270;  
                 }
                 else 
@@ -226,7 +203,36 @@
                     
                     if (grupo.Count == 2)
                     {
-                        foreach(var pos in grupo) Matriz[pos.r, pos.c].Valor = 3;
+                       
+                        var p1 = grupo[0];
+                        var p2 = grupo[1];
+                        int nuevaRot = 0;
+
+                        if (p1.r == p2.r) 
+                        {
+
+                            var rect = RectangulosActivos.FirstOrDefault(x => x.Id == Matriz[p1.r, p1.c].RectanguloId);
+                            if (rect != null)
+                            {
+                                if (p1.r == rect.FilaInicio) nuevaRot = 90; 
+                                else nuevaRot = 270; 
+                            }
+                        }
+                        else
+                        {
+                            var rect = RectangulosActivos.FirstOrDefault(x => x.Id == Matriz[p1.r, p1.c].RectanguloId);
+                            if (rect != null)
+                            {
+                                if (p1.c == rect.ColInicio) nuevaRot = 0; 
+                                else nuevaRot = 180; 
+                            }
+                        }
+
+                        foreach(var pos in grupo) 
+                        {
+                            Matriz[pos.r, pos.c].Valor = 3;
+                            Matriz[pos.r, pos.c].Rotacion = nuevaRot;
+                        }
                     }
                     else if (grupo.Count == 3)
                     {
@@ -243,6 +249,15 @@
                             else 
                             {
                                 miCelda.Valor = 1;
+                                var vecino6 = grupo.FirstOrDefault(v => Matriz[v.r, v.c].Valor == 6); 
+                                var rect = RectangulosActivos.FirstOrDefault(x => x.Id == miCelda.RectanguloId);
+                                if (rect != null)
+                                {
+                                    if (pos.r == rect.FilaInicio) miCelda.Rotacion = 90;
+                                    else if (pos.r == rect.FilaFin) miCelda.Rotacion = 270;
+                                    else if (pos.c == rect.ColInicio) miCelda.Rotacion = 0;
+                                    else miCelda.Rotacion = 180;
+                                }
                             }
                         }
                     }
@@ -258,6 +273,7 @@
             }
         }
 
+        // 2. REGLA DE BORDES (El 4)
         for (int r = 0; r < Filas; r++)
         {
             for (int c = 0; c < Columnas; c++)
@@ -279,21 +295,23 @@
     {
         var otros = grupo.Where(x => x.r != r || x.c != c).ToList();
         if (otros.Count < 2) return 0;
-
-        var v1 = otros[0];
-        var v2 = otros[1];
+        var v1 = otros[0]; var v2 = otros[1];
 
         if (v1.r == v2.r)
         {
-             return 0; 
+            
+             var rect = RectangulosActivos.FirstOrDefault(x => x.Id == Matriz[r, c].RectanguloId);
+             if (rect != null)
+             {
+                 if (r == rect.FilaInicio) return 0; // T invertida
+                 if (r == rect.FilaFin) return 180; // T normal
+             }
+             return 0;
         }
-
-
         if (v1.c == v2.c)
         {
-             return 90; 
+             return 90;
         }
-        
         return 0;
     }
 
