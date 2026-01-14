@@ -70,9 +70,9 @@
     .contenido-celda { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
     
     /* Estilos visuales según tipo */
-    .estilo-lona { background-color: #bbdefb; color: #0d47a1; } /* Azul claro */
-    .estilo-pad { background-color: #fff9c4; color: #f57f17; } /* Amarillo (Unión) */
-    .estilo-malla { background-color: #ffcdd2; color: #b71c1c; border: 2px solid #b71c1c; } /* Rojo (Peligro/Malla) */
+    .estilo-lona { background-color: #bbdefb; color: #0d47a1; } 
+    .estilo-pad { background-color: #fff9c4; color: #f57f17; } 
+    .estilo-malla { background-color: #ffcdd2; color: #b71c1c; border: 2px solid #b71c1c; } 
 
     .modelo-tag { font-weight: bold; font-size: 0.9em; margin-bottom: 2px; text-align: center; }
     .flecha { font-size: 1.5em; color: inherit; display: block; transition: transform 0.3s ease; line-height: 0.8; opacity: 0.7; }
@@ -143,7 +143,6 @@
             for (int j = 0; j < Columnas; j++)
                 Matriz[i, j] = new Celda();
 
-        // 1. Llenar ocupación base
         foreach (var rect in RectangulosActivos)
         {
             for (int r = rect.FilaInicio; r <= rect.FilaFin; r++)
@@ -154,7 +153,6 @@
                 }
         }
 
-        // 2. Calcular Lógica de Perímetro
         foreach (var rect in RectangulosActivos)
         {
             CalcularLogicaRectangulo(rect);
@@ -169,7 +167,6 @@
             {
                 var celda = Matriz[r, c];
                 
-                // Determinar si soy Borde de MI rectángulo
                 bool esTop = (r == rect.FilaInicio);
                 bool esBottom = (r == rect.FilaFin);
                 bool esLeft = (c == rect.ColInicio);
@@ -177,58 +174,70 @@
 
                 if (!esTop && !esBottom && !esLeft && !esRight)
                 {
-                    // SOY CENTRO (Lona de salto)
                     celda.Modelo3D = "Lona";
                     celda.EstiloCss = "estilo-lona";
                     celda.Rotacion = 0; 
                     continue;
                 }
 
-                
-                bool necesitoMalla = false;
+                bool hayPeligro = false;
+                int rotacionSugerida = 0;
+
+                bool vacioArriba = EsVacio(r - 1, c);
+                bool vacioAbajo = EsVacio(r + 1, c);
+                bool vacioIzq = EsVacio(r, c - 1);
+                bool vacioDer = EsVacio(r, c + 1);
+
+                if (esTop && vacioArriba) { hayPeligro = true; rotacionSugerida = 180; }
+                if (esBottom && vacioAbajo) { hayPeligro = true; rotacionSugerida = 0; }
+                if (esLeft && vacioIzq) { hayPeligro = true; rotacionSugerida = 90; }
+                if (esRight && vacioDer) { hayPeligro = true; rotacionSugerida = 270; }
 
                 
+                if (!hayPeligro)
+                {
+                    if ((esTop || esLeft) && EsVacio(r - 1, c - 1)) 
+                    { 
+                        hayPeligro = true; rotacionSugerida = 135; 
+                    }
+                    else if ((esTop || esRight) && EsVacio(r - 1, c + 1)) 
+                    { 
+                        hayPeligro = true; rotacionSugerida = 225; 
+                    }
+                    else if ((esBottom || esRight) && EsVacio(r + 1, c + 1)) 
+                    { 
+                        hayPeligro = true; rotacionSugerida = 315; 
+                    }
+                    else if ((esBottom || esLeft) && EsVacio(r + 1, c - 1)) 
+                    { 
+                        hayPeligro = true; rotacionSugerida = 45; 
+                    }
+                }
                 
-                if (esTop)
+                if (hayPeligro)
                 {
-                    celda.Rotacion = 180; 
-                    necesitoMalla = EsVacio(r - 1, c); 
-                }
-                else if (esBottom)
-                {
-                    celda.Rotacion = 0; 
-                    necesitoMalla = EsVacio(r + 1, c);
-                }
-                else if (esLeft)
-                {
-                    celda.Rotacion = 90;
-                    necesitoMalla = EsVacio(r, c - 1);
-                }
-                else if (esRight)
-                {
-                    celda.Rotacion = 270;
-                    necesitoMalla = EsVacio(r, c + 1);
+                     if (esTop && esLeft && vacioArriba && vacioIzq) rotacionSugerida = 135;
+                     if (esTop && esRight && vacioArriba && vacioDer) rotacionSugerida = 225;
+                     if (esBottom && esRight && vacioAbajo && vacioDer) rotacionSugerida = 315;
+                     if (esBottom && esLeft && vacioAbajo && vacioIzq) rotacionSugerida = 45;
                 }
 
-               
-                if (esTop && esLeft) 
-                {
-                     necesitoMalla = EsVacio(r - 1, c) || EsVacio(r, c - 1);
-                     celda.Rotacion = 135; 
-                }
-                else if (esTop && esRight) { necesitoMalla = EsVacio(r - 1, c) || EsVacio(r, c + 1); celda.Rotacion = 225; }
-                else if (esBottom && esRight) { necesitoMalla = EsVacio(r + 1, c) || EsVacio(r, c + 1); celda.Rotacion = 315; }
-                else if (esBottom && esLeft) { necesitoMalla = EsVacio(r + 1, c) || EsVacio(r, c - 1); celda.Rotacion = 45; }
-
-                if (necesitoMalla)
+                // --- ASIGNACIÓN FINAL ---
+                if (hayPeligro)
                 {
                     celda.Modelo3D = "Malla";
                     celda.EstiloCss = "estilo-malla";
+                    celda.Rotacion = rotacionSugerida;
                 }
                 else
                 {
-                    celda.Modelo3D = "Pad"; 
+                    celda.Modelo3D = "Pad";
                     celda.EstiloCss = "estilo-pad";
+                    // Rotación default hacia el centro
+                    if (esTop) celda.Rotacion = 180;
+                    else if (esBottom) celda.Rotacion = 0;
+                    else if (esLeft) celda.Rotacion = 90;
+                    else if (esRight) celda.Rotacion = 270;
                 }
             }
         }
