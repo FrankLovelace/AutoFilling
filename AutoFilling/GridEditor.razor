@@ -1,0 +1,70 @@
+<div class="panel-controles">
+    <div class="control-grupo">
+        <label>Filas: <strong>@Filas</strong></label>
+        <button @onclick="() => CambiarFilas(-1)">-</button>
+        <button @onclick="() => CambiarFilas(1)">+</button>
+    </div>
+
+    <div class="control-grupo">
+        <label>Columnas: <strong>@Columnas</strong></label>
+        <button @onclick="() => CambiarColumnas(-1)">-</button>
+        <button @onclick="() => CambiarColumnas(1)">+</button>
+    </div>
+</div>
+<div class="grid-contenedor" style="grid-template-columns: repeat(@Columnas, 40px);">
+    @for (int i = 0; i < (Filas * Columnas); i++)
+    {
+        <div class="casilla">
+
+        </div>
+    }
+</div>
+
+<style>
+    .panel-controles {
+        margin-bottom: 20px;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        display: flex;
+        gap: 20px;
+    }
+
+    .grid-contenedor {
+        display: grid;
+        gap: 2px; 
+        background-color: #ccc;
+        border: 1px solid #999;
+        width: fit-content; 
+        padding: 2px;
+    }
+
+    .casilla {
+        width: 40px;
+        height: 40px;
+        background-color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+    
+    .casilla:hover {
+        background-color: #e2e6ea; 
+    }
+</style>
+
+@code {
+    public int Filas { get; set; } = 5;
+    public int Columnas { get; set; } = 5;
+
+    void CambiarFilas(int delta)
+    {
+        if (Filas + delta > 0) Filas += delta;
+    }
+
+    void CambiarColumnas(int delta)
+    {
+        if (Columnas + delta > 0) Columnas += delta;
+    }
+}
