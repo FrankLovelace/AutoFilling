@@ -1,0 +1,117 @@
+@namespace AutoFilling
+@inject GridState State
+@implements IDisposable
+
+<div class="editor-container">
+    <h3>1. Editor (Input)</h3>
+    
+    <div class="controles">
+        <label>F: <input type="number" value="@State.Filas" @onchange="e => CambiarF(e)" /></label>
+        <label>C: <input type="number" value="@State.Columnas" @onchange="e => CambiarC(e)" /></label>
+        <span class="info">@mensaje</span>
+    </div>
+
+    <div class="grid" style="grid-template-columns: repeat(@State.Columnas, 40px);">
+        @for (int r = 0; r < State.Filas; r++)
+        {
+            @for (int c = 0; c < State.Columnas; c++)
+            {
+                int fr = r; int fc = c;
+                var rect = ObtenerRectangulo(fr, fc);
+                bool ocupado = rect != null;
+                
+                string bordeClass = "";
+                if (rect != null)
+                {
+                    if (fr == rect.R1) bordeClass += " b-top";
+                    if (fr == rect.R2) bordeClass += " b-bottom";
+                    if (fc == rect.C1) bordeClass += " b-left";
+                    if (fc == rect.C2) bordeClass += " b-right";
+                }
+
+                <div class="celda @(ocupado ? "ocupado" : "") @bordeClass @(EsSeleccion(fr,fc) ? "select" : "")"
+                     @onclick="() => Click(fr, fc)">
+                     <small>@fr,@fc</small>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<style>
+    .editor-container { background: #fff; padding: 10px; border: 1px solid #ccc; }
+    .grid { display: grid; gap: 1px; background: #eee; width: fit-content; }
+    .celda { 
+        height: 40px; background: white; cursor: pointer; 
+        display: flex; align-items: center; justify-content: center; font-size: 0.6em; color: #ccc;
+    }
+    
+    .ocupado { background-color: #bbdefb; color: #000; }
+    
+    /* Bordes negros gruesos para definir el paralelogramo */
+    .b-top { border-top: 3px solid black; }
+    .b-bottom { border-bottom: 3px solid black; }
+    .b-left { border-left: 3px solid black; }
+    .b-right { border-right: 3px solid black; }
+
+    .select { background-color: #b3d9ff; outline: 2px dashed blue; z-index: 10;}
+</style>
+
+@code {
+    (int r, int c)? seleccion = null;
+    string mensaje = "Haz clic para crear";
+
+    protected override void OnInitialized() => State.OnChange += StateHasChanged;
+    public void Dispose() => State.OnChange -= StateHasChanged;
+
+    void Click(int r, int c)
+    {
+        if (ObtenerRectangulo(r,c) != null) return; 
+
+        if (seleccion == null)
+        {
+            seleccion = (r, c);
+            mensaje = "Selecciona fin...";
+        }
+        else
+        {
+            var ini = seleccion.Value;
+            int h = Math.Abs(r - ini.r) + 1;
+            int w = Math.Abs(c - ini.c) + 1;
+            
+            if (h < 3 || w < 3) { mensaje = "Mínimo 3x3!"; return; }
+
+            if(!HayColision(ini.r, ini.c, r, c))
+            {
+                State.AgregarRectangulo(ini.r, ini.c, r, c);
+                mensaje = "Creado!";
+            }
+            else mensaje = "Espacio ocupado";
+
+            seleccion = null;
+        }
+    }
+
+    bool HayColision(int r1, int c1, int r2, int c2)
+    {
+        int rMin = Math.Min(r1, r2); int rMax = Math.Max(r1, r2);
+        int cMin = Math.Min(c1, c2); int cMax = Math.Max(c1, c2);
+        
+        foreach(var rect in State.Rectangulos)
+        {
+            bool solapaR = rMin <= rect.R2 && rMax >= rect.R1;
+            bool solapaC = cMin <= rect.C2 && cMax >= rect.C1;
+            if (solapaR && solapaC) return true;
+        }
+        return false;
+    }
+
+    RectanguloData? ObtenerRectangulo(int r, int c)
+    {
+        return State.Rectangulos.FirstOrDefault(rect => r >= rect.R1 && r <= rect.R2 && c >= rect.C1 && c <= rect.C2);
+    }
+
+    bool EsSeleccion(int r, int c) => seleccion != null && seleccion.Value.r == r && seleccion.Value.c == c;
+    void CambiarF(ChangeEventArgs e) => State.ActualizarDimensiones(int.Parse(e.Value?.ToString() ?? "0"), State.Columnas);
+    void CambiarC(ChangeEventArgs e) => State.ActualizarDimensiones(State.Filas, int.Parse(e.Value?.ToString() ?? "0"));
+}
