@@ -1,36 +1,36 @@
 {
   "Files": [
     {
-      "Id": "C:\\Users\\alexa\\Downloads\\autofilling\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\Autofilling.bundle.scp.css",
-      "PackagePath": "staticwebassets\\Autofilling.e2ibaqan5y.bundle.scp.css"
+      "Id": "C:\\Users\\alexa\\Downloads\\autofilling\\AutoFilling\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\AutoFilling.bundle.scp.css",
+      "PackagePath": "staticwebassets\\AutoFilling.e5f0eluhmw.bundle.scp.css"
     },
     {
-      "Id": "C:\\Users\\alexa\\Downloads\\autofilling\\wwwroot\\background.png",
+      "Id": "C:\\Users\\alexa\\Downloads\\autofilling\\AutoFilling\\wwwroot\\background.png",
       "PackagePath": "staticwebassets\\background.png"
     },
     {
-      "Id": "C:\\Users\\alexa\\Downloads\\autofilling\\wwwroot\\exampleJsInterop.js",
+      "Id": "C:\\Users\\alexa\\Downloads\\autofilling\\AutoFilling\\wwwroot\\exampleJsInterop.js",
       "PackagePath": "staticwebassets\\exampleJsInterop.js"
     },
     {
-      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.Autofilling.Microsoft.AspNetCore.StaticWebAssetEndpoints.props",
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.AutoFilling.Microsoft.AspNetCore.StaticWebAssetEndpoints.props",
       "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssetEndpoints.props"
     },
     {
-      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.Autofilling.Microsoft.AspNetCore.StaticWebAssets.props",
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.AutoFilling.Microsoft.AspNetCore.StaticWebAssets.props",
       "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
     },
     {
-      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.Autofilling.props",
-      "PackagePath": "build\\Autofilling.props"
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.AutoFilling.props",
+      "PackagePath": "build\\AutoFilling.props"
     },
     {
-      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.Autofilling.props",
-      "PackagePath": "buildMultiTargeting\\Autofilling.props"
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.AutoFilling.props",
+      "PackagePath": "buildMultiTargeting\\AutoFilling.props"
     },
     {
-      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.Autofilling.props",
-      "PackagePath": "buildTransitive\\Autofilling.props"
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.AutoFilling.props",
+      "PackagePath": "buildTransitive\\AutoFilling.props"
     }
   ],
   "ElementsToRemove": []

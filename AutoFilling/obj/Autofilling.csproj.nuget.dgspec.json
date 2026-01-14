@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\alexa\\Downloads\\autofilling\\Autofilling.csproj": {}
+    "C:\\Users\\alexa\\Downloads\\autofilling\\AutoFilling\\AutoFilling.csproj": {}
   },
   "projects": {
-    "C:\\Users\\alexa\\Downloads\\autofilling\\Autofilling.csproj": {
+    "C:\\Users\\alexa\\Downloads\\autofilling\\AutoFilling\\AutoFilling.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\alexa\\Downloads\\autofilling\\Autofilling.csproj",
-        "projectName": "Autofilling",
-        "projectPath": "C:\\Users\\alexa\\Downloads\\autofilling\\Autofilling.csproj",
+        "projectUniqueName": "C:\\Users\\alexa\\Downloads\\autofilling\\AutoFilling\\AutoFilling.csproj",
+        "projectName": "AutoFilling",
+        "projectPath": "C:\\Users\\alexa\\Downloads\\autofilling\\AutoFilling\\AutoFilling.csproj",
         "packagesPath": "C:\\Users\\alexa\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\alexa\\Downloads\\autofilling\\obj\\",
+        "outputPath": "C:\\Users\\alexa\\Downloads\\autofilling\\AutoFilling\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

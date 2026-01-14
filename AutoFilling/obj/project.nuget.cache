@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "xbhJo+UWLdE=",
+  "dgSpecHash": "H5Ny6mjFEoY=",
   "success": true,
-  "projectFilePath": "C:\\Users\\alexa\\Downloads\\autofilling\\Autofilling.csproj",
+  "projectFilePath": "C:\\Users\\alexa\\Downloads\\autofilling\\AutoFilling\\AutoFilling.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\alexa\\.nuget\\packages\\microsoft.aspnetcore.authorization\\8.0.22\\microsoft.aspnetcore.authorization.8.0.22.nupkg.sha512",
     "C:\\Users\\alexa\\.nuget\\packages\\microsoft.aspnetcore.components\\8.0.22\\microsoft.aspnetcore.components.8.0.22.nupkg.sha512",
