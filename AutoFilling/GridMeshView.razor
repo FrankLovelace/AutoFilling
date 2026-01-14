@@ -3,29 +3,179 @@
 @implements IDisposable
 
 <div class="visor-container">
-    <h3>3. Visor Malla (Solo Lectura)</h3>
-    <div class="grid" style="grid-template-columns: repeat(@State.Columnas, 30px);">
+    <h3>3. Visor Malla (Postes Funcionales)</h3>
+    <div class="info-text">
+        <span class="dot-sample mand"></span> Obligatorio 
+        <span class="dot-sample opt"></span> Opcional (Activo)
+        <span class="dot-sample off"></span> Opcional (Inactivo)
+    </div>
+    
+    <div class="grid" style="grid-template-columns: repeat(@State.Columnas, 40px);">
         @for (int r = 0; r < State.Filas; r++)
         {
             @for (int c = 0; c < State.Columnas; c++)
             {
-             //aun no está xd
-                var rect = State.Rectangulos.FirstOrDefault(rect => r >= rect.R1 && r <= rect.R2 && c >= rect.C1 && c <= rect.C2);
-                
-                <div class="celda-mini @(rect != null ? "v-ocupado" : "")"></div>
+                int fr = r; int fc = c;
+                bool ocupado = EstaOcupado(fr, fc);
+
+                <div class="celda-malla @(ocupado ? "ocupado-bg" : "")">
+                    @if (ocupado)
+                    {
+                        // 1. MUROS
+                        bool mTop = !EstaOcupado(fr - 1, fc);
+                        bool mBottom = !EstaOcupado(fr + 1, fc);
+                        bool mLeft = !EstaOcupado(fr, fc - 1);
+                        bool mRight = !EstaOcupado(fr, fc + 1);
+
+                        // 2. VECINOS PARA LOGICA DE CONTINUIDAD
+                        bool muroTopIzq = TieneMuro(fr, fc - 1, "Top");
+                        bool muroLeftArriba = TieneMuro(fr - 1, fc, "Left");
+                        bool muroTopDer = TieneMuro(fr, fc + 1, "Top");
+                        bool muroRightArriba = TieneMuro(fr - 1, fc, "Right");
+                        bool muroBottomIzq = TieneMuro(fr, fc - 1, "Bottom");
+                        bool muroLeftAbajo = TieneMuro(fr + 1, fc, "Left");
+                        bool muroBottomDer = TieneMuro(fr, fc + 1, "Bottom");
+                        bool muroRightAbajo = TieneMuro(fr + 1, fc, "Right");
+
+                        // 3. DIBUJAR MUROS
+                        if (mTop) { <div class="wall wall-top"></div> }
+                        if (mBottom) { <div class="wall wall-bottom"></div> }
+                        if (mLeft) { <div class="wall wall-left"></div> }
+                        if (mRight) { <div class="wall wall-right"></div> }
+
+                        // 4. RENDERIZAR POSTES 
+                        // Nota: Usamos @RenderPoste(...) para invocar el fragmento de HTML
+
+                        // -- POSTE TOP-LEFT --
+                        if (mTop || mLeft)
+                        {
+                            bool esRectaH = mTop && muroTopIzq && !mLeft && !muroLeftArriba;
+                            bool esRectaV = mLeft && muroLeftArriba && !mTop && !muroTopIzq;
+                            @RenderPoste(fr, fc, "TL", !(esRectaH || esRectaV))
+                        }
+
+                        // -- POSTE TOP-RIGHT --
+                        if (mTop || mRight)
+                        {
+                            bool esRectaH = mTop && muroTopDer && !mRight && !muroRightArriba;
+                            bool esRectaV = mRight && muroRightArriba && !mTop && !muroTopDer;
+                            @RenderPoste(fr, fc, "TR", !(esRectaH || esRectaV))
+                        }
+
+                        // -- POSTE BOTTOM-LEFT --
+                        if (mBottom || mLeft)
+                        {
+                            bool esRectaH = mBottom && muroBottomIzq && !mLeft && !muroLeftAbajo;
+                            bool esRectaV = mLeft && muroLeftAbajo && !mBottom && !muroBottomIzq;
+                            @RenderPoste(fr, fc, "BL", !(esRectaH || esRectaV))
+                        }
+
+                        // -- POSTE BOTTOM-RIGHT --
+                        if (mBottom || mRight)
+                        {
+                            bool esRectaH = mBottom && muroBottomDer && !mRight && !muroRightAbajo;
+                            bool esRectaV = mRight && muroRightAbajo && !mBottom && !muroBottomDer;
+                            @RenderPoste(fr, fc, "BR", !(esRectaH || esRectaV))
+                        }
+
+                        // 5. BRACKETS
+                        if (mTop && mLeft) { <div class="bracket bracket-tl"></div> }
+                        if (mTop && mRight) { <div class="bracket bracket-tr"></div> }
+                        if (mBottom && mLeft) { <div class="bracket bracket-bl"></div> }
+                        if (mBottom && mRight) { <div class="bracket bracket-br"></div> }
+
+                        // 6. BRACKETS INTERNOS
+                        if (mRight && EstaOcupado(fr - 1, fc) && EstaOcupado(fr - 1, fc + 1)) { <div class="bracket bracket-inner-tr"></div> }
+                        if (mLeft && EstaOcupado(fr - 1, fc) && EstaOcupado(fr - 1, fc - 1)) { <div class="bracket bracket-inner-tl"></div> }
+                        if (mRight && EstaOcupado(fr + 1, fc) && EstaOcupado(fr + 1, fc + 1)) { <div class="bracket bracket-inner-br"></div> }
+                        if (mLeft && EstaOcupado(fr + 1, fc) && EstaOcupado(fr + 1, fc - 1)) { <div class="bracket bracket-inner-bl"></div> }
+                    }
+                </div>
             }
         }
     </div>
-    <div style="margin-top: 5px; font-size: 0.8em; color: #666;">
-        Estado JSON: @State.Rectangulos.Count rectángulos activos.
-    </div>
 </div>
-
-<style>
-    .v-ocupado { background-color: #ffcdd2; border: 1px solid red; }
-</style>
 
 @code {
     protected override void OnInitialized() => State.OnChange += StateHasChanged;
     public void Dispose() => State.OnChange -= StateHasChanged;
+
+    bool EstaOcupado(int r, int c) => State.Rectangulos.Any(rect => r >= rect.R1 && r <= rect.R2 && c >= rect.C1 && c <= rect.C2);
+
+    bool TieneMuro(int r, int c, string lado)
+    {
+        if (!EstaOcupado(r, c)) return false; // Si no hay celda, no hay muro de malla interno
+        if (lado == "Top") return !EstaOcupado(r - 1, c);
+        if (lado == "Bottom") return !EstaOcupado(r + 1, c);
+        if (lado == "Left") return !EstaOcupado(r, c - 1);
+        if (lado == "Right") return !EstaOcupado(r, c + 1);
+        return false;
+    }
+
+    void TogglePoste(int r, int c, string pos) => State.TogglePoste(r, c, pos);
+
+    // CORRECCIÓN IMPORTANTE: Ahora devuelve RenderFragment para poder pintar HTML
+    RenderFragment RenderPoste(int r, int c, string pos, bool obligatorio) => __builder =>
+    {
+        bool oculto = !obligatorio && State.PostesOcultos.Contains($"{r},{c},{pos}");
+        string clasePos = $"post-{pos.ToLower()}";
+        string claseTipo = obligatorio ? "post-mand" : "post-opt";
+        string claseEstado = oculto ? "post-inactive" : "";
+
+        <div class="@($"post {clasePos} {claseTipo} {claseEstado}")" 
+             @onclick='() => { if(!obligatorio) TogglePoste(r, c, pos); }'
+             @onclick:stopPropagation="true"
+             title="@(obligatorio ? "Obligatorio" : "Clic para quitar/poner")">
+        </div>
+    };
 }
+
+<style>
+    .visor-container { background: #fff; padding: 10px; border: 1px solid #ccc; margin-top: 10px; }
+    .info-text { font-size: 0.8em; color: #666; margin-bottom: 5px; }
+    
+    .dot-sample { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: middle;}
+    .dot-sample.mand { background: #b71c1c; }
+    .dot-sample.opt { background: #fff; border: 2px solid #b71c1c; }
+    .dot-sample.off { background: #ccc; }
+
+    .grid { display: grid; gap: 0; background: #eee; width: fit-content; border: 1px solid #ddd;}
+    .celda-malla { height: 40px; position: relative; box-sizing: border-box; }
+    .ocupado-bg { background-color: #f0f4f8; }
+
+    /* MUROS */
+    .wall { position: absolute; background-color: #d32f2f; z-index: 10; }
+    .wall-top { top: 0; left: 0; right: 0; height: 4px; }
+    .wall-bottom { bottom: 0; left: 0; right: 0; height: 4px; }
+    .wall-left { top: 0; bottom: 0; left: 0; width: 4px; }
+    .wall-right { top: 0; bottom: 0; right: 0; width: 4px; }
+
+    /* POSTES */
+    .post { position: absolute; width: 10px; height: 10px; border-radius: 50%; z-index: 20; cursor: pointer; transition: transform 0.1s;}
+    .post-mand { background-color: #b71c1c; cursor: not-allowed; }
+    
+    /* Poste Opcional (Visible) */
+    .post-opt { background-color: white; border: 2px solid #b71c1c; width: 8px; height: 8px;}
+    .post-opt:hover { transform: scale(1.3); background-color: #ffcdd2;}
+
+    /* Poste Opcional (Inactivo/Oculto) */
+    .post-inactive { background-color: #ccc; border-color: #ccc; opacity: 1; }
+    .post-inactive:hover { background-color: #aaa; transform: scale(1.3); }
+
+    .post-tl { top: -4px; left: -4px; }
+    .post-tr { top: -4px; right: -4px; }
+    .post-bl { bottom: -4px; left: -4px; }
+    .post-br { bottom: -4px; right: -4px; }
+
+    /* BRACKETS */
+    .bracket { position: absolute; width: 12px; height: 12px; border-color: black; border-style: solid; border-width: 0; z-index: 15; opacity: 0.8; pointer-events: none;}
+    .bracket-tl { top: 6px; left: 6px; border-top-width: 3px; border-left-width: 3px; }
+    .bracket-tr { top: 6px; right: 6px; border-top-width: 3px; border-right-width: 3px; }
+    .bracket-br { bottom: 6px; right: 6px; border-bottom-width: 3px; border-right-width: 3px; }
+    .bracket-bl { bottom: 6px; left: 6px; border-bottom-width: 3px; border-left-width: 3px; }
+    
+    .bracket-inner-tr { top: 6px; right: 6px; border-top-width: 3px; border-left-width: 3px; }
+    .bracket-inner-tl { top: 6px; left: 6px; border-top-width: 3px; border-right-width: 3px; }
+    .bracket-inner-br { bottom: 6px; right: 6px; border-bottom-width: 3px; border-left-width: 3px; }
+    .bracket-inner-bl { bottom: 6px; left: 6px; border-bottom-width: 3px; border-right-width: 3px; }
+</style>

@@ -19,7 +19,7 @@ namespace AutoFilling
         public int Columnas { get; private set; } = 10;
         public List<RectanguloData> Rectangulos { get; private set; } = new();
 
-        public HashSet<string> PostesOcultos { get; private set; } = new();
+        public HashSet<string> PostesActivos { get; private set; } = new();
 
         public event Action? OnChange;
 
@@ -45,8 +45,8 @@ namespace AutoFilling
         public void TogglePoste(int r, int c, string pos)
         {
             string key = $"{r},{c},{pos}";
-            if (PostesOcultos.Contains(key)) PostesOcultos.Remove(key);
-            else PostesOcultos.Add(key);
+            if (PostesActivos.Contains(key)) PostesActivos.Remove(key);
+            else PostesActivos.Add(key);
             
             NotificarCambios();
         }
