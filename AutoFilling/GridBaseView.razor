@@ -3,26 +3,57 @@
 @implements IDisposable
 
 <div class="visor-container">
-    <h3>2. Visor Base (Solo Lectura)</h3>
-    <div class="grid" style="grid-template-columns: repeat(@State.Columnas, 30px);">
+    <h3>2. Visor Base (Estructura y Resortes)</h3>
+    
+    <div class="grid" style="grid-template-columns: repeat(@State.Columnas, 40px);">
         @for (int r = 0; r < State.Filas; r++)
         {
             @for (int c = 0; c < State.Columnas; c++)
             {
                 int fr = r; int fc = c;
+                
                 var rect = State.Rectangulos.FirstOrDefault(rect => fr >= rect.R1 && fr <= rect.R2 && fc >= rect.C1 && fc <= rect.C2);
                 
-                string clase = "";
+                string claseTipo = "";
                 string texto = "";
+                
+                bool isTop = false, isBottom = false, isLeft = false, isRight = false;
 
                 if (rect != null)
                 {
-                    bool borde = (fr == rect.R1 || fr == rect.R2 || fc == rect.C1 || fc == rect.C2);
-                    if (borde) { clase = "v-pad"; texto = "P"; }
-                    else { clase = "v-lona"; texto = "L"; }
+                    isTop = (fr == rect.R1);
+                    isBottom = (fr == rect.R2);
+                    isLeft = (fc == rect.C1);
+                    isRight = (fc == rect.C2);
+
+                    if (isTop || isBottom || isLeft || isRight) 
+                    { 
+                        claseTipo = "v-pad"; 
+                        texto = "P"; 
+                    }
+                    else 
+                    { 
+                        claseTipo = "v-lona"; 
+                        texto = "L"; 
+                    }
                 }
 
-                <div class="celda-mini @clase">@texto</div>
+                <div class="celda-base @claseTipo">
+                    <span class="label">@texto</span>
+
+                    @if (claseTipo == "v-pad")
+                    {
+                        if (isTop && isLeft) { <div class="resorte diag-tl"></div> }
+                        else if (isTop && isRight) { <div class="resorte diag-tr"></div> }
+                        else if (isBottom && isLeft) { <div class="resorte diag-bl"></div> }
+                        else if (isBottom && isRight) { <div class="resorte diag-br"></div> }
+                        
+                        else if (isTop) { <div class="resorte rect-top"></div> }
+                        else if (isBottom) { <div class="resorte rect-bottom"></div> }
+                        else if (isLeft) { <div class="resorte rect-left"></div> }
+                        else if (isRight) { <div class="resorte rect-right"></div> }
+                    }
+                </div>
             }
         }
     </div>
@@ -30,9 +61,63 @@
 
 <style>
     .visor-container { background: #f9f9f9; padding: 10px; border: 1px solid #ccc; margin-top: 10px;}
-    .celda-mini { height: 30px; background: white; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; font-size: 0.7em;}
-    .v-pad { background: #fff9c4; color: orange; font-weight: bold; }
-    .v-lona { background: #bbdefb; color: blue; }
+    .grid { display: grid; gap: 1px; background: #ddd; width: fit-content; border: 1px solid #999;}
+    
+    .celda-base { 
+        height: 40px; background: white; 
+        display: flex; align-items: center; justify-content: center; 
+        position: relative; 
+    }
+    
+    .label { z-index: 10; font-weight: bold; font-size: 0.8em; }
+
+    .v-pad { background: #fff9c4; color: #f57f17; }
+    .v-lona { background: #bbdefb; color: #0d47a1; }
+
+    .resorte {
+        position: absolute;
+        background-color: black;
+        z-index: 5;
+    }
+
+    .rect-top { top: 0; left: 50%; width: 2px; height: 50%; transform: translateX(-50%); }
+    .rect-bottom { bottom: 0; left: 50%; width: 2px; height: 50%; transform: translateX(-50%); }
+    .rect-left { left: 0; top: 50%; width: 50%; height: 2px; transform: translateY(-50%); }
+    .rect-right { right: 0; top: 50%; width: 50%; height: 2px; transform: translateY(-50%); }
+
+    
+    .diag-tl { 
+        width: 2px; height: 70%; 
+        top: 50%; left: 50%; 
+        transform: translate(-50%, -50%) rotate(-45deg); 
+        transform-origin: top center;
+        top: 10%; /* Ajuste fino */
+    }
+
+    .diag-tr { 
+        width: 2px; height: 70%; 
+        top: 50%; left: 50%; 
+        transform: translate(-50%, -50%) rotate(45deg); 
+        transform-origin: top center;
+        top: 10%;
+    }
+
+    .diag-bl { 
+        width: 2px; height: 70%; 
+        top: 50%; left: 50%; 
+        transform: translate(-50%, -50%) rotate(45deg); 
+        transform-origin: bottom center;
+        top: auto; bottom: 10%;
+    }
+
+    .diag-br { 
+        width: 2px; height: 70%; 
+        top: 50%; left: 50%; 
+        transform: translate(-50%, -50%) rotate(-45deg); 
+        transform-origin: bottom center;
+        top: auto; bottom: 10%;
+    }
+
 </style>
 
 @code {
