@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AutoFilling
 {
     public class RectanguloData
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public int R1 { get; set; } 
-        public int R2 { get; set; } 
+        public int R1 { get; set; }
+        public int R2 { get; set; }
         public int C1 { get; set; }
-        public int C2 { get; set; } 
+        public int C2 { get; set; }
     }
 
     public class GridState
@@ -17,6 +18,8 @@ namespace AutoFilling
         public int Filas { get; private set; } = 10;
         public int Columnas { get; private set; } = 10;
         public List<RectanguloData> Rectangulos { get; private set; } = new();
+
+        public HashSet<string> PostesOcultos { get; private set; } = new();
 
         public event Action? OnChange;
 
@@ -36,6 +39,15 @@ namespace AutoFilling
                 C1 = Math.Min(c1, c2), C2 = Math.Max(c1, c2)
             };
             Rectangulos.Add(nuevo);
+            NotificarCambios();
+        }
+
+        public void TogglePoste(int r, int c, string pos)
+        {
+            string key = $"{r},{c},{pos}";
+            if (PostesOcultos.Contains(key)) PostesOcultos.Remove(key);
+            else PostesOcultos.Add(key);
+            
             NotificarCambios();
         }
 
