@@ -1,0 +1,31 @@
+@namespace AutoFilling
+@inject GridState State
+@implements IDisposable
+
+<div class="visor-container">
+    <h3>3. Visor Malla (Solo Lectura)</h3>
+    <div class="grid" style="grid-template-columns: repeat(@State.Columnas, 30px);">
+        @for (int r = 0; r < State.Filas; r++)
+        {
+            @for (int c = 0; c < State.Columnas; c++)
+            {
+             //aun no está xd
+                var rect = State.Rectangulos.FirstOrDefault(rect => r >= rect.R1 && r <= rect.R2 && c >= rect.C1 && c <= rect.C2);
+                
+                <div class="celda-mini @(rect != null ? "v-ocupado" : "")"></div>
+            }
+        }
+    </div>
+    <div style="margin-top: 5px; font-size: 0.8em; color: #666;">
+        Estado JSON: @State.Rectangulos.Count rectángulos activos.
+    </div>
+</div>
+
+<style>
+    .v-ocupado { background-color: #ffcdd2; border: 1px solid red; }
+</style>
+
+@code {
+    protected override void OnInitialized() => State.OnChange += StateHasChanged;
+    public void Dispose() => State.OnChange -= StateHasChanged;
+}
