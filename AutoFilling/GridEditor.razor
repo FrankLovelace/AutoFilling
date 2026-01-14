@@ -71,7 +71,7 @@
         public bool Ocupado { get; set; } = false;
         public Guid? RectanguloId { get; set; }
         public TipoBase Tipo { get; set; } = TipoBase.Nada;
-        public bool EsForzadaA1 { get; set; } = false; 
+        public bool Visitado { get; set; } = false; 
     }
 
     public class Rectangulo
@@ -94,7 +94,6 @@
     void AlClickarCasilla(int fila, int col)
     {
         if (Matriz[fila, col].Ocupado) return;
-
         if (inicioSeleccion == null) inicioSeleccion = (fila, col);
         else
         {
@@ -119,14 +118,13 @@
 
     void ReconstruirMatriz()
     {
-
         Matriz = new Celda[Filas, Columnas];
         for (int i = 0; i < Filas; i++)
             for (int j = 0; j < Columnas; j++)
                 Matriz[i, j] = new Celda();
 
         foreach (var rect in RectangulosActivos) AplicarRectanguloBase(rect);
-
+        
         AplicarReglasAvanzadas();
     }
 
@@ -144,46 +142,49 @@
                 bool esBordeX = (c == rect.ColInicio || c == rect.ColFin);
 
                 if (esBordeY && esBordeX) 
-                {
-                    celda.Tipo = TipoBase.Esquina;
-                    celda.Valor = 2; //esquina Base
-                }
+                { celda.Tipo = TipoBase.Esquina; celda.Valor = 2; }
                 else if (esBordeY || esBordeX) 
-                {
-                    celda.Tipo = TipoBase.Borde;
-                    celda.Valor = 1; //base
-                }
+                { celda.Tipo = TipoBase.Borde; celda.Valor = 1; }
                 else 
-                {
-                    celda.Tipo = TipoBase.Centro;
-                    celda.Valor = 0; // Centro
-                }
+                { celda.Tipo = TipoBase.Centro; celda.Valor = 0; }
             }
         }
     }
 
     void AplicarReglasAvanzadas()
     {
-        
+        for (int r = 0; r < Filas; r++)
+            for (int c = 0; c < Columnas; c++)
+                Matriz[r, c].Visitado = false;
+
         for (int r = 0; r < Filas; r++)
         {
             for (int c = 0; c < Columnas; c++)
             {
                 var celda = Matriz[r, c];
-                if (!celda.Ocupado || celda.Tipo != TipoBase.Esquina) continue;
-
-                var vecinosEsquina = ObtenerVecinosDeTipo(r, c, TipoBase.Esquina);
-                
-                if (vecinosEsquina.Count == 2) 
+                if (celda.Ocupado && celda.Tipo == TipoBase.Esquina && !celda.Visitado)
                 {
+                    var grupo = ObtenerGrupoConectado(r, c, TipoBase.Esquina);
                     
-                    celda.Valor = 6;
-                    
-                    foreach(var vecinoPos in vecinosEsquina)
+                    if (grupo.Count == 1)
                     {
-                        var vecino = Matriz[vecinoPos.r, vecinoPos.c];
-                        vecino.Valor = 1;
-                        vecino.EsForzadaA1 = true; 
+                    }
+                    else if (grupo.Count == 2)
+                    {
+                        foreach(var pos in grupo) Matriz[pos.r, pos.c].Valor = 3;
+                    }
+                    else if (grupo.Count == 3)
+                    {
+                        foreach(var pos in grupo)
+                        {
+                            int vecinosEnGrupo = ContarVecinosEnLista(pos.r, pos.c, grupo);
+                            if (vecinosEnGrupo >= 2) Matriz[pos.r, pos.c].Valor = 6;
+                            else Matriz[pos.r, pos.c].Valor = 1;
+                        }
+                    }
+                    else if (grupo.Count >= 4)
+                    {
+                        foreach(var pos in grupo) Matriz[pos.r, pos.c].Valor = 5;
                     }
                 }
             }
@@ -194,34 +195,63 @@
             for (int c = 0; c < Columnas; c++)
             {
                 var celda = Matriz[r, c];
-                if (celda.Valor == 6 || celda.EsForzadaA1) continue;
-                
-                if (!celda.Ocupado || celda.Tipo != TipoBase.Esquina) continue;
-
-                var vecinosEsquina = ObtenerVecinosDeTipo(r, c, TipoBase.Esquina);
-                if (vecinosEsquina.Count >= 1)
+                if (celda.Ocupado && celda.Tipo == TipoBase.Borde)
                 {
-                    celda.Valor = 3;
+                    var vecinosBorde = ObtenerVecinosDeTipo(r, c, TipoBase.Borde);
+                    if (vecinosBorde.Count > 0)
+                    {
+                        celda.Valor = 4;
+                    }
                 }
             }
         }
+    }
 
-        for (int r = 0; r < Filas; r++)
+    List<(int r, int c)> ObtenerGrupoConectado(int startR, int startC, TipoBase tipo)
+    {
+        var grupo = new List<(int r, int c)>();
+        var cola = new Queue<(int r, int c)>();
+        
+        cola.Enqueue((startR, startC));
+        Matriz[startR, startC].Visitado = true;
+        grupo.Add((startR, startC));
+
+        while(cola.Count > 0)
         {
-            for (int c = 0; c < Columnas; c++)
+            var actual = cola.Dequeue();
+            var vecinos = ObtenerVecinosDeTipo(actual.r, actual.c, tipo);
+            
+            foreach(var v in vecinos)
             {
-                var celda = Matriz[r, c];
-                if (celda.EsForzadaA1) continue;
-
-                if (!celda.Ocupado || celda.Tipo != TipoBase.Borde) continue;
-
-                var vecinosBorde = ObtenerVecinosDeTipo(r, c, TipoBase.Borde);
-                if (vecinosBorde.Count >= 1)
+                if (!Matriz[v.r, v.c].Visitado)
                 {
-                    celda.Valor = 4;
+                    Matriz[v.r, v.c].Visitado = true;
+                    grupo.Add(v);
+                    cola.Enqueue(v);
                 }
             }
         }
+        return grupo;
+    }
+
+    int ContarVecinosEnLista(int r, int c, List<(int r, int c)> lista)
+    {
+        int count = 0;
+        int[] dr = { -1, 1, 0, 0 };
+        int[] dc = { 0, 0, -1, 1 };
+        
+        foreach(var item in lista)
+        {
+            for(int i=0; i<4; i++)
+            {
+                if(r + dr[i] == item.r && c + dc[i] == item.c)
+                {
+                    count++;
+                    break;
+                }
+            }
+        }
+        return count;
     }
 
     List<(int r, int c)> ObtenerVecinosDeTipo(int r, int c, TipoBase tipoBuscado)
