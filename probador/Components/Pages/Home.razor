@@ -1,7 +1,11 @@
 ﻿@page "/"
 
-@using AutoFilling 
+<div style="display: flex; gap: 20px; align-items: flex-start;">
+    <div style="flex: 1;">
+        <GridEditorInput />
+    </div>
 
-<h3>Probador de Grid</h3>
-
-<GridEditor />
+    <div style="flex: 0 0 350px;">
+        <GridBaseView />
+    </div>
+</div>

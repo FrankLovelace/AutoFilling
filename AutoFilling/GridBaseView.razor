@@ -1,0 +1,41 @@
+@namespace AutoFilling
+@inject GridState State
+@implements IDisposable
+
+<div class="visor-container">
+    <h3>2. Visor Base (Solo Lectura)</h3>
+    <div class="grid" style="grid-template-columns: repeat(@State.Columnas, 30px);">
+        @for (int r = 0; r < State.Filas; r++)
+        {
+            @for (int c = 0; c < State.Columnas; c++)
+            {
+                int fr = r; int fc = c;
+                var rect = State.Rectangulos.FirstOrDefault(rect => fr >= rect.R1 && fr <= rect.R2 && fc >= rect.C1 && fc <= rect.C2);
+                
+                string clase = "";
+                string texto = "";
+
+                if (rect != null)
+                {
+                    bool borde = (fr == rect.R1 || fr == rect.R2 || fc == rect.C1 || fc == rect.C2);
+                    if (borde) { clase = "v-pad"; texto = "P"; }
+                    else { clase = "v-lona"; texto = "L"; }
+                }
+
+                <div class="celda-mini @clase">@texto</div>
+            }
+        }
+    </div>
+</div>
+
+<style>
+    .visor-container { background: #f9f9f9; padding: 10px; border: 1px solid #ccc; margin-top: 10px;}
+    .celda-mini { height: 30px; background: white; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; font-size: 0.7em;}
+    .v-pad { background: #fff9c4; color: orange; font-weight: bold; }
+    .v-lona { background: #bbdefb; color: blue; }
+</style>
+
+@code {
+    protected override void OnInitialized() => State.OnChange += StateHasChanged;
+    public void Dispose() => State.OnChange -= StateHasChanged;
+}
