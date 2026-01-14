@@ -1,18 +1,19 @@
 @namespace AutoFilling
+<div class="tabs-container">
+    <button class="tab-btn @(VistaActual == "Todo" ? "active" : "")" @onclick='() => VistaActual = "Todo"'>👁️ Ver Todo</button>
+    <button class="tab-btn @(VistaActual == "Base" ? "active" : "")" @onclick='() => VistaActual = "Base"'>🟨 Solo Base</button>
+    <button class="tab-btn @(VistaActual == "Malla" ? "active" : "")" @onclick='() => VistaActual = "Malla"'>🟥 Solo Malla</button>
+</div>
 
 <div class="panel-controles">
     <div class="control-grupo">
-        <label>Filas: <strong>@Filas</strong></label>
-        <button class="btn" @onclick="() => CambiarDimensiones(1, 0)">+</button>
-        <button class="btn" @onclick="() => CambiarDimensiones(-1, 0)">-</button>
+        <label>Filas:</label>
+        <input type="number" class="input-dim" value="@Filas" @onchange="e => ActualizarFilas(e)" min="5" max="50" />
     </div>
-
     <div class="control-grupo">
-        <label>Columnas: <strong>@Columnas</strong></label>
-        <button class="btn" @onclick="() => CambiarDimensiones(0, 1)">+</button>
-        <button class="btn" @onclick="() => CambiarDimensiones(0, -1)">-</button>
+        <label>Columnas:</label>
+        <input type="number" class="input-dim" value="@Columnas" @onchange="e => ActualizarColumnas(e)" min="5" max="50" />
     </div>
-    
     <div class="instrucciones">
         @if (inicioSeleccion == null)
         {
@@ -20,13 +21,19 @@
         }
         else
         {
-            <span class="esperando">Cierra la cama</span>
+            <span class="esperando">Cierra la cama (Mín 3x3)</span>
             <button class="btn-cancelar" @onclick="CancelarSeleccion">Cancelar</button>
         }
     </div>
 </div>
 
-<div class="grid-contenedor" 
+@if (!string.IsNullOrEmpty(mensajeError))
+{
+    <div class="alerta-error">⚠️ @mensajeError</div>
+}
+
+<!-- GRID -->
+<div class="grid-contenedor modo-vista-@VistaActual.ToLower()" 
      style="grid-template-columns: repeat(@Columnas, 60px); 
             grid-template-rows: repeat(@Filas, 60px);">
             
@@ -37,34 +44,45 @@
             int fila = r; int col = c;
             var celda = Matriz[fila, col];
             
-            // Clases para los Muros Rojos
-            string claseMuros = "";
-            if (celda.MuroTop) claseMuros += " muro-top";
-            if (celda.MuroBottom) claseMuros += " muro-bottom";
-            if (celda.MuroLeft) claseMuros += " muro-left";
-            if (celda.MuroRight) claseMuros += " muro-right";
-
             <div class="casilla @ObtenerClase(celda, fila, col)" 
                  @onclick="() => AlClickarCasilla(fila, col)">
                 
                 @if (celda.Ocupado)
                 {
-                    <div class="contenido-celda @celda.EstiloCss @claseMuros">
-                        <span class="modelo-tag">@celda.Modelo3D</span>
+                    <div class="contenido-celda">
                         
-                        <div class="indicadores-sticks">
-                            @if(celda.StickUp) { <div class="stick stick-up"></div> }
-                            @if(celda.StickDown) { <div class="stick stick-down"></div> }
-                            @if(celda.StickLeft) { <div class="stick stick-left"></div> }
-                            @if(celda.StickRight) { <div class="stick stick-right"></div> }
+                        <div class="layer-base @ObtenerEstiloBase(celda)">
+                            <span class="modelo-tag">@celda.TipoBase.ToString()</span>
+
+                            @if(celda.StickUp) { <div class="stick stick-up"></div> <div class="ptr ptr-horz"></div> }
+                            @if(celda.StickDown) { <div class="stick stick-down"></div> <div class="ptr ptr-horz"></div> }
+                            @if(celda.StickLeft) { <div class="stick stick-left"></div> <div class="ptr ptr-vert"></div> }
+                            @if(celda.StickRight) { <div class="stick stick-right"></div> <div class="ptr ptr-vert"></div> }
                         </div>
 
-                        @if(celda.UneArriba) { <div class="union-dot u-top"></div> }
-                        @if(celda.UneAbajo) { <div class="union-dot u-bottom"></div> }
-                        @if(celda.UneIzq) { <div class="union-dot u-left"></div> }
-                        @if(celda.UneDer) { <div class="union-dot u-right"></div> }
+                       
+                        @if(celda.EsConector)
+                        {
+                            <div class="layer-conector-overlay">
+                                <span class="conector-tag">Conector</span>
+                                <div class="letra-c">C</div>
+                                @if(celda.UneArriba) { <div class="union-dot u-top"></div> }
+                                @if(celda.UneAbajo) { <div class="union-dot u-bottom"></div> }
+                                @if(celda.UneIzq) { <div class="union-dot u-left"></div> }
+                                @if(celda.UneDer) { <div class="union-dot u-right"></div> }
+                            </div>
+                        }
+
                         
-                         @if(celda.Modelo3D == "Conector") { <div class="letra-c">C</div> }
+                        <div class="layer-malla">
+                            @if(celda.MuroTop) { <div class="malla-line m-top"></div> }
+                            @if(celda.MuroBottom) { <div class="malla-line m-bottom"></div> }
+                            @if(celda.MuroLeft) { <div class="malla-line m-left"></div> }
+                            @if(celda.MuroRight) { <div class="malla-line m-right"></div> }
+                            
+                            @if(celda.EsVecinoDeConector) { <div class="icono-link">🔗</div> }
+                        </div>
+
                     </div>
                 }
             </div>
@@ -73,73 +91,107 @@
 </div>
 
 <style>
-    .panel-controles { margin-bottom: 15px; display: flex; gap: 15px; align-items: center; background: #eee; padding: 10px; border-radius: 5px;}
-    .btn { padding: 2px 10px; cursor: pointer; }
-    .btn-cancelar { margin-left: 10px; background: #ffcccc; border: 1px solid red; }
-    .instrucciones { margin-left: auto; font-size: 0.9em; color: #555; }
-    .esperando { color: blue; font-weight: bold; }
-
+    /* LAYOUT GENERAL */
+    .input-dim { width: 60px; padding: 5px; font-weight: bold; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
+    .tabs-container { display: flex; gap: 5px; margin-bottom: 15px; }
+    .tab-btn { padding: 8px 16px; border: none; background: #e0e0e0; cursor: pointer; border-radius: 5px; font-weight: bold; opacity: 0.6; transition: 0.2s;}
+    .tab-btn.active { opacity: 1; background: #333; color: white; transform: scale(1.05); }
+    .panel-controles { margin-bottom: 10px; display: flex; gap: 15px; align-items: center; background: #eee; padding: 10px; border-radius: 5px;}
+    .btn-cancelar { margin-left: 10px; background: #ffcccc; border: 1px solid red; padding: 5px 10px; cursor: pointer;}
+    .alerta-error { background-color: #ffcdd2; color: #b71c1c; padding: 10px; margin-bottom: 10px; text-align: center; border-radius: 4px;}
+    
     .grid-contenedor { display: grid; gap: 1px; background-color: #333; border: 1px solid #999; width: fit-content; user-select: none; }
-    
     .casilla { background-color: #f8f9fa; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; font-size: 0.8em; position: relative;}
-    .contenido-celda { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; position: relative; }
+    .contenido-celda { width: 100%; height: 100%; position: relative; }
+
+    /* === CAPA 1: BASE === */
+    .layer-base { width: 100%; height: 100%; position: absolute; top:0; left:0; display: flex; flex-direction: column; align-items: center; justify-content: center;}
+    .base-lona { background-color: #bbdefb; color: #0d47a1; }
+    .base-pad { background-color: #fff9c4; color: #f57f17; } 
+
+    /* === CAPA 2: CONECTOR (OVERLAY) === */
+    .layer-conector-overlay { 
+        width: 100%; height: 100%; position: absolute; top:0; left:0; 
+        background-color: rgba(225, 190, 231, 0.8); /* Morado semi-transparente */
+        border: 2px dashed #7b1fa2; box-sizing: border-box;
+        z-index: 15;
+        display: flex; align-items: center; justify-content: center;
+    }
+
+    /* === CAPA 3: MALLA === */
+    .layer-malla { width: 100%; height: 100%; position: absolute; top:0; left:0; pointer-events: none; z-index: 20; }
+
+    /* ELEMENTOS GRÁFICOS */
+    .modelo-tag { font-weight: bold; font-size: 0.8em; z-index: 5; position: relative; top: -8px;}
+    .conector-tag { font-weight: bold; font-size: 0.7em; color: #4a148c; position: absolute; top: 2px; }
     
-    /* Estilos base */
-    .estilo-lona { background-color: #bbdefb; color: #0d47a1; }
-    .estilo-pad { background-color: #fff9c4; color: #f57f17; } /* Amarillo */
-    .estilo-malla { background-color: #ffcdd2; color: #b71c1c; } /* Rojo */
-    .estilo-conector { background-color: #e1bee7; color: #4a148c; border: 2px dashed #7b1fa2; } /* MORADO */
-
-    /* MUROS ROJOS */
-    .muro-top { border-top: 5px solid #b71c1c; }
-    .muro-bottom { border-bottom: 5px solid #b71c1c; }
-    .muro-left { border-left: 5px solid #b71c1c; }
-    .muro-right { border-right: 5px solid #b71c1c; }
-
-    .modelo-tag { font-weight: bold; font-size: 0.8em; z-index: 2; position: relative; top: -8px;}
-
-    /* STICKS NEGROS */
-    .stick { position: absolute; background-color: black; z-index: 1; }
+    /* Resortes y Estructura */
+    .stick { position: absolute; background-color: black; z-index: 10; }
     .stick-up { bottom: 50%; left: 50%; width: 2px; height: 15px; transform: translateX(-50%); }
     .stick-down { top: 50%; left: 50%; width: 2px; height: 15px; transform: translateX(-50%); }
     .stick-left { right: 50%; top: 50%; width: 15px; height: 2px; transform: translateY(-50%); }
     .stick-right { left: 50%; top: 50%; width: 15px; height: 2px; transform: translateY(-50%); }
+    
+    .ptr { position: absolute; background-color: #666; z-index: 8; }
+    .ptr-horz { top: 50%; left: 0; right: 0; height: 4px; transform: translateY(-50%); }
+    .ptr-vert { left: 50%; top: 0; bottom: 0; width: 4px; transform: translateX(-50%); }
 
-    /* MARCAS DE UNIÓN (Puntos morados oscuros en el borde) */
-    .union-dot { position: absolute; width: 8px; height: 8px; background-color: #4a148c; border-radius: 50%; z-index: 4; }
+    /* Líneas Rojas de Malla */
+    .malla-line { position: absolute; background-color: #b71c1c; }
+    .m-top { top: 0; left: 0; right: 0; height: 6px; }
+    .m-bottom { bottom: 0; left: 0; right: 0; height: 6px; }
+    .m-left { left: 0; top: 0; bottom: 0; width: 6px; }
+    .m-right { right: 0; top: 0; bottom: 0; width: 6px; }
+
+    /* Puntos de unión Conector */
+    .union-dot { position: absolute; width: 8px; height: 8px; background-color: #4a148c; border-radius: 50%; }
     .u-top { top: 2px; left: 50%; transform: translateX(-50%); }
     .u-bottom { bottom: 2px; left: 50%; transform: translateX(-50%); }
     .u-left { left: 2px; top: 50%; transform: translateY(-50%); }
     .u-right { right: 2px; top: 50%; transform: translateY(-50%); }
+    .letra-c { font-size: 2em; font-weight: bold; color: rgba(74, 20, 140, 0.4); }
+    .icono-link { position: absolute; top: 2px; right: 2px; font-size: 1.2em; z-index: 25; }
 
-    .letra-c { position: absolute; font-size: 1.5em; font-weight: bold; color: rgba(74, 20, 140, 0.3); top: 50%; left: 50%; transform: translate(-50%, -40%); z-index: 0;}
+    /* === GESTIÓN DE VISTAS (CSS MAGIC) === */
+
+    /* Solo Base: Ocultar Malla y Overlay Conector */
+    .modo-vista-base .layer-malla { display: none; }
+    .modo-vista-base .layer-conector-overlay { display: none; } /* Ocultamos la lógica morada */
+
+    /* Solo Malla: Ocultar Base, mostrar solo Muros rojos */
+    .modo-vista-malla .layer-base { opacity: 0.1; filter: grayscale(100%); } /* Base tenue */
+    .modo-vista-malla .layer-conector-overlay { display: none; } /* Ocultar logica morada */
+    .modo-vista-malla .layer-malla { opacity: 1; }
 
     .casilla:hover { filter: brightness(0.95); }
     .seleccionando { background-color: #b3d9ff !important; }
 </style>
 
 @code {
+    public enum TipoBase { Nada, Lona, Pad } 
+
     public class Celda
     {
         public bool Ocupado { get; set; } = false;
         public Guid RectanguloId { get; set; }
-        public string Modelo3D { get; set; } = "";
-        public string EstiloCss { get; set; } = "";
         
-        public bool MuroTop { get; set; }
-        public bool MuroBottom { get; set; }
-        public bool MuroLeft { get; set; }
-        public bool MuroRight { get; set; }
-
+        public TipoBase TipoBase { get; set; } = TipoBase.Nada;
         public bool StickUp { get; set; }
         public bool StickDown { get; set; }
         public bool StickLeft { get; set; }
         public bool StickRight { get; set; }
 
+        public bool MuroTop { get; set; }
+        public bool MuroBottom { get; set; }
+        public bool MuroLeft { get; set; }
+        public bool MuroRight { get; set; }
+
+        public bool EsConector { get; set; }
         public bool UneArriba { get; set; }
         public bool UneAbajo { get; set; }
         public bool UneIzq { get; set; }
         public bool UneDer { get; set; }
+        public bool EsVecinoDeConector { get; set; }
     }
 
     public class Rectangulo
@@ -156,18 +208,24 @@
     public Celda[,] Matriz { get; set; } = new Celda[0,0];
     private List<Rectangulo> RectangulosActivos = new();
     private (int r, int c)? inicioSeleccion = null;
+    private string mensajeError = "";
+    public string VistaActual { get; set; } = "Todo";
 
     protected override void OnInitialized() => ReconstruirMatriz();
+
+    void ActualizarFilas(ChangeEventArgs e) { if (int.TryParse(e.Value?.ToString(), out int v) && v >= 5) { Filas = v; ReconstruirMatriz(); } }
+    void ActualizarColumnas(ChangeEventArgs e) { if (int.TryParse(e.Value?.ToString(), out int v) && v >= 5) { Columnas = v; ReconstruirMatriz(); } }
 
     void AlClickarCasilla(int fila, int col)
     {
         if (Matriz[fila, col].Ocupado) return;
-        if (inicioSeleccion == null) inicioSeleccion = (fila, col);
-        else
-        {
+        if (inicioSeleccion == null) { inicioSeleccion = (fila, col); mensajeError = ""; }
+        else {
             var inicio = inicioSeleccion.Value;
+            int alto = Math.Abs(fila - inicio.r) + 1; int ancho = Math.Abs(col - inicio.c) + 1;
+            if (alto < 3 || ancho < 3) { mensajeError = "Mínimo 3x3"; return; }
             IntentarCrearRectangulo(inicio.r, inicio.c, fila, col);
-            inicioSeleccion = null;
+            inicioSeleccion = null; mensajeError = "";
         }
     }
 
@@ -175,16 +233,14 @@
     {
         int rMin = Math.Min(r1, r2); int rMax = Math.Max(r1, r2);
         int cMin = Math.Min(c1, c2); int cMax = Math.Max(c1, c2);
-        for (int r = rMin; r <= rMax; r++)
-            for (int c = cMin; c <= cMax; c++)
-                if (Matriz[r, c].Ocupado) return;
-
+        for (int r = rMin; r <= rMax; r++) for (int c = cMin; c <= cMax; c++) if (Matriz[r, c].Ocupado) { mensajeError = "Ocupado"; return; }
         RectangulosActivos.Add(new Rectangulo { FilaInicio = rMin, FilaFin = rMax, ColInicio = cMin, ColFin = cMax });
         ReconstruirMatriz();
     }
 
     void ReconstruirMatriz()
     {
+        RectangulosActivos.RemoveAll(rect => rect.FilaFin >= Filas || rect.ColFin >= Columnas);
         Matriz = new Celda[Filas, Columnas];
         for (int i = 0; i < Filas; i++) for (int j = 0; j < Columnas; j++) Matriz[i, j] = new Celda();
 
@@ -196,108 +252,88 @@
                     Matriz[r, c].RectanguloId = rect.Id;
                 }
 
-        foreach (var rect in RectangulosActivos) CalcularFase1_Basicos(rect);
-
-        CalcularFase2_Conectores();
+        foreach (var rect in RectangulosActivos) CalcularCapaBase(rect);
+        CalcularCapaMalla();
+        CalcularCapaConectores();
     }
 
-    void CalcularFase1_Basicos(Rectangulo rect)
+    void CalcularCapaBase(Rectangulo rect)
     {
         for (int r = rect.FilaInicio; r <= rect.FilaFin; r++)
         {
             for (int c = rect.ColInicio; c <= rect.ColFin; c++)
             {
                 var celda = Matriz[r, c];
-                
-                // 1. STICKS (Geometría interna)
-                bool esTop = (r == rect.FilaInicio);
-                bool esBottom = (r == rect.FilaFin);
-                bool esLeft = (c == rect.ColInicio);
-                bool esRight = (c == rect.ColFin);
+                bool esTop = (r == rect.FilaInicio); bool esBottom = (r == rect.FilaFin);
+                bool esLeft = (c == rect.ColInicio); bool esRight = (c == rect.ColFin);
 
                 if (esTop) celda.StickDown = true;
                 if (esBottom) celda.StickUp = true;
                 if (esLeft) celda.StickRight = true;
                 if (esRight) celda.StickLeft = true;
 
-                // 2. MUROS (Geometría externa)
-                celda.MuroTop = EsVacio(r - 1, c);
-                celda.MuroBottom = EsVacio(r + 1, c);
-                celda.MuroLeft = EsVacio(r, c - 1);
-                celda.MuroRight = EsVacio(r, c + 1);
-
-                // 3. TIPO INICIAL
-                if (!esTop && !esBottom && !esLeft && !esRight) {
-                    celda.Modelo3D = "Lona";
-                    celda.EstiloCss = "estilo-lona";
-                }
-                else if (celda.MuroTop || celda.MuroBottom || celda.MuroLeft || celda.MuroRight) {
-                    celda.Modelo3D = "Malla";
-                    celda.EstiloCss = "estilo-malla";
-                }
-                else {
-                    celda.Modelo3D = "Pad";
-                    celda.EstiloCss = "estilo-pad";
-                }
+                if (!esTop && !esBottom && !esLeft && !esRight) celda.TipoBase = TipoBase.Lona;
+                else celda.TipoBase = TipoBase.Pad;
             }
         }
     }
 
-    void CalcularFase2_Conectores()
+    void CalcularCapaMalla()
     {
         for (int r = 0; r < Filas; r++)
         {
             for (int c = 0; c < Columnas; c++)
             {
                 var celda = Matriz[r, c];
-                if (celda.Modelo3D != "Pad") continue;
+                if (!celda.Ocupado) continue;
 
-                // Revisamos vecinos para ver si son Mallas
-                bool mallaArriba = EsMalla(r - 1, c);
-                bool mallaAbajo = EsMalla(r + 1, c);
-                bool mallaIzq = EsMalla(r, c - 1);
-                bool mallaDer = EsMalla(r, c + 1);
+                celda.MuroTop = EsVacio(r - 1, c);
+                celda.MuroBottom = EsVacio(r + 1, c);
+                celda.MuroLeft = EsVacio(r, c - 1);
+                celda.MuroRight = EsVacio(r, c + 1);
+            }
+        }
+    }
 
+    void CalcularCapaConectores()
+    {
+        for (int r = 0; r < Filas; r++) for (int c = 0; c < Columnas; c++) Matriz[r, c].EsVecinoDeConector = false;
+
+        for (int r = 0; r < Filas; r++)
+        {
+            for (int c = 0; c < Columnas; c++)
+            {
+                var celda = Matriz[r, c];
+                if (celda.TipoBase != TipoBase.Pad) continue;
+
+
+                bool mallaArriba = TieneMuro(r - 1, c);
+                bool mallaAbajo = TieneMuro(r + 1, c);
+                bool mallaIzq = TieneMuro(r, c - 1);
+                bool mallaDer = TieneMuro(r, c + 1);
                 
-                bool esEsquina = (mallaArriba && mallaIzq) || 
-                                 (mallaArriba && mallaDer) || 
-                                 (mallaAbajo && mallaIzq) || 
-                                 (mallaAbajo && mallaDer);
+                bool esEsquina = (mallaArriba && mallaIzq) || (mallaArriba && mallaDer) || 
+                                 (mallaAbajo && mallaIzq) || (mallaAbajo && mallaDer);
 
                 if (esEsquina)
                 {
-                    celda.Modelo3D = "Conector";
-                    celda.EstiloCss = "estilo-conector";
-                    
-                    // Marcamos visualmente hacia dónde conecta
-                    celda.UneArriba = mallaArriba;
-                    celda.UneAbajo = mallaAbajo;
-                    celda.UneIzq = mallaIzq;
-                    celda.UneDer = mallaDer;
+                    celda.EsConector = true;
+                    celda.UneArriba = mallaArriba; celda.UneAbajo = mallaAbajo;
+                    celda.UneIzq = mallaIzq; celda.UneDer = mallaDer;
+
+                    if (mallaArriba) MarcarLink(r - 1, c);
+                    if (mallaAbajo) MarcarLink(r + 1, c);
+                    if (mallaIzq) MarcarLink(r, c - 1);
+                    if (mallaDer) MarcarLink(r, c + 1);
                 }
             }
         }
     }
 
-    bool EsVacio(int r, int c)
-    {
-        if (r < 0 || r >= Filas || c < 0 || c >= Columnas) return true;
-        return !Matriz[r, c].Ocupado;
-    }
-
-    bool EsMalla(int r, int c)
-    {
-        if (r < 0 || r >= Filas || c < 0 || c >= Columnas) return false;
-        return Matriz[r, c].Modelo3D == "Malla";
-    }
-
-    void CambiarDimensiones(int deltaFila, int deltaCol)
-    {
-        if (Filas + deltaFila < 1 || Columnas + deltaCol < 1) return;
-        Filas += deltaFila; Columnas += deltaCol;
-        RectangulosActivos.RemoveAll(rect => rect.FilaFin >= Filas || rect.ColFin >= Columnas);
-        ReconstruirMatriz();
-    }
-    void CancelarSeleccion() => inicioSeleccion = null;
+    void MarcarLink(int r, int c) { if (r>=0 && r<Filas && c>=0 && c<Columnas) Matriz[r,c].EsVecinoDeConector = true; }
+    bool EsVacio(int r, int c) { if (r<0 || r>=Filas || c<0 || c>=Columnas) return true; return !Matriz[r,c].Ocupado; }
+    bool TieneMuro(int r, int c) { if (r<0 || r>=Filas || c<0 || c>=Columnas) return false; var m=Matriz[r,c]; return m.MuroTop || m.MuroBottom || m.MuroLeft || m.MuroRight; }
+    string ObtenerEstiloBase(Celda c) => c.TipoBase switch { TipoBase.Lona => "base-lona", TipoBase.Pad => "base-pad", _ => "" };
+    void CancelarSeleccion() { inicioSeleccion = null; mensajeError = ""; }
     string ObtenerClase(Celda c, int r, int i) => (c.Ocupado ? "ocupada " : "") + (inicioSeleccion != null && inicioSeleccion.Value.r == r && inicioSeleccion.Value.c == i ? "seleccionando" : "");
 }
