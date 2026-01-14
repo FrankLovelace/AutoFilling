@@ -3,70 +3,221 @@
 <div class="panel-controles">
     <div class="control-grupo">
         <label>Filas: <strong>@Filas</strong></label>
-        <button @onclick="() => CambiarFilas(-1)">-</button>
-        <button @onclick="() => CambiarFilas(1)">+</button>
+        <button class="btn" @onclick="() => CambiarDimensiones(1, 0)">+</button>
+        <button class="btn" @onclick="() => CambiarDimensiones(-1, 0)">-</button>
     </div>
 
     <div class="control-grupo">
         <label>Columnas: <strong>@Columnas</strong></label>
-        <button @onclick="() => CambiarColumnas(-1)">-</button>
-        <button @onclick="() => CambiarColumnas(1)">+</button>
+        <button class="btn" @onclick="() => CambiarDimensiones(0, 1)">+</button>
+        <button class="btn" @onclick="() => CambiarDimensiones(0, -1)">-</button>
+    </div>
+    
+    <div class="instrucciones">
+        @if (inicioSeleccion == null)
+        {
+            <span>Haz clic para iniciar un rectángulo</span>
+        }
+        else
+        {
+            <span class="esperando">Haz clic en otro punto para cerrar</span>
+            <button class="btn-cancelar" @onclick="CancelarSeleccion">Cancelar</button>
+        }
     </div>
 </div>
-<div class="grid-contenedor" style="grid-template-columns: repeat(@Columnas, 40px);">
-    @for (int i = 0; i < (Filas * Columnas); i++)
-    {
-        <div class="casilla">
 
-        </div>
+<!-- GRID VISUAL -->
+<div class="grid-contenedor" 
+     style="grid-template-columns: repeat(@Columnas, 40px); 
+            grid-template-rows: repeat(@Filas, 40px);">
+            
+    @for (int r = 0; r < Filas; r++)
+    {
+        @for (int c = 0; c < Columnas; c++)
+        {
+            int fila = r;
+            int col = c;
+            var celda = Matriz[fila, col];
+            
+            <div class="casilla @ObtenerClase(celda, fila, col)" 
+                 @onclick="() => AlClickarCasilla(fila, col)">
+                 
+                @if (celda.Ocupado)
+                {
+                    <span class="numero">@celda.Valor</span>
+                }
+            </div>
+        }
     }
 </div>
 
 <style>
-    .panel-controles {
-        margin-bottom: 20px;
-        padding: 10px;
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        display: flex;
-        gap: 20px;
-    }
+    .panel-controles { margin-bottom: 15px; display: flex; gap: 15px; align-items: center; background: #eee; padding: 10px; border-radius: 5px;}
+    .btn { padding: 2px 10px; cursor: pointer; }
+    .btn-cancelar { margin-left: 10px; background: #ffcccc; border: 1px solid red; }
+    .instrucciones { margin-left: auto; font-size: 0.9em; color: #555; }
+    .esperando { color: blue; font-weight: bold; }
 
     .grid-contenedor {
         display: grid;
-        gap: 2px; 
+        gap: 1px;
         background-color: #ccc;
         border: 1px solid #999;
-        width: fit-content; 
-        padding: 2px;
+        width: fit-content;
+        user-select: none;
     }
 
     .casilla {
-        width: 40px;
-        height: 40px;
         background-color: white;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
+        font-family: monospace;
+        font-size: 1.2em;
     }
+
+    .casilla:hover { background-color: #f0f0f0; }
     
-    .casilla:hover {
-        background-color: #e2e6ea; 
-    }
+    .seleccionando { background-color: #b3d9ff !important; } 
+    .ocupada { background-color: #fff; color: black; font-weight: bold; }
 </style>
 
 @code {
-    public int Filas { get; set; } = 5;
-    public int Columnas { get; set; } = 5;
-
-    void CambiarFilas(int delta)
+    public class Celda
     {
-        if (Filas + delta > 0) Filas += delta;
+        public int Valor { get; set; } 
+        public bool Ocupado { get; set; } = false;
+        public Guid? RectanguloId { get; set; } 
     }
 
-    void CambiarColumnas(int delta)
+    public class Rectangulo
     {
-        if (Columnas + delta > 0) Columnas += delta;
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public int FilaInicio { get; set; }
+        public int FilaFin { get; set; }
+        public int ColInicio { get; set; }
+        public int ColFin { get; set; }
+    }
+
+    public int Filas { get; set; } = 5;
+    public int Columnas { get; set; } = 5;
+    public Celda[,] Matriz { get; set; } = new Celda[0,0];
+    
+    private List<Rectangulo> RectangulosActivos = new();
+    
+    private (int r, int c)? inicioSeleccion = null;
+
+    protected override void OnInitialized()
+    {
+        ReconstruirMatriz();
+    }
+
+
+    void AlClickarCasilla(int fila, int col)
+    {
+        if (Matriz[fila, col].Ocupado) return;
+
+        if (inicioSeleccion == null)
+        {
+            inicioSeleccion = (fila, col);
+        }
+        else
+        {
+            
+            var inicio = inicioSeleccion.Value;
+            CrearRectangulo(inicio.r, inicio.c, fila, col);
+            inicioSeleccion = null;
+        }
+    }
+
+    void CrearRectangulo(int r1, int c1, int r2, int c2)
+    {
+        
+        int rMin = Math.Min(r1, r2);
+        int rMax = Math.Max(r1, r2);
+        int cMin = Math.Min(c1, c2);
+        int cMax = Math.Max(c1, c2);
+
+        for (int r = rMin; r <= rMax; r++)
+        {
+            for (int c = cMin; c <= cMax; c++)
+            {
+                if (Matriz[r, c].Ocupado) return; 
+            }
+        }
+
+        var nuevoRect = new Rectangulo 
+        { 
+            FilaInicio = rMin, FilaFin = rMax, 
+            ColInicio = cMin, ColFin = cMax 
+        };
+        RectangulosActivos.Add(nuevoRect);
+
+        AplicarRectanguloAMatriz(nuevoRect);
+    }
+
+    void AplicarRectanguloAMatriz(Rectangulo rect)
+    {
+        for (int r = rect.FilaInicio; r <= rect.FilaFin; r++)
+        {
+            for (int c = rect.ColInicio; c <= rect.ColFin; c++)
+            {
+                var celda = Matriz[r, c];
+                celda.Ocupado = true;
+                celda.RectanguloId = rect.Id;
+
+                bool esBordeSuperiorInferior = (r == rect.FilaInicio || r == rect.FilaFin);
+                bool esBordeIzquierdoDerecho = (c == rect.ColInicio || c == rect.ColFin);
+
+                if (esBordeSuperiorInferior && esBordeIzquierdoDerecho)
+                {
+                    celda.Valor = 2; 
+                }
+                else if (esBordeSuperiorInferior || esBordeIzquierdoDerecho)
+                {
+                    celda.Valor = 1; 
+                }
+                else
+                {
+                    celda.Valor = 0; 
+                }
+            }
+        }
+    }
+
+
+    void CambiarDimensiones(int deltaFila, int deltaCol)
+    {
+        if (Filas + deltaFila < 1 || Columnas + deltaCol < 1) return;
+
+        Filas += deltaFila;
+        Columnas += deltaCol;
+
+        RectangulosActivos.RemoveAll(rect => rect.FilaFin >= Filas || rect.ColFin >= Columnas);
+
+        ReconstruirMatriz();
+    }
+
+    void ReconstruirMatriz()
+    {
+        Matriz = new Celda[Filas, Columnas];
+        for (int i = 0; i < Filas; i++)
+            for (int j = 0; j < Columnas; j++)
+                Matriz[i, j] = new Celda();
+
+        foreach (var rect in RectangulosActivos)
+        {
+            AplicarRectanguloAMatriz(rect);
+        }
+    }
+
+    void CancelarSeleccion() => inicioSeleccion = null;
+
+    string ObtenerClase(Celda celda, int r, int c)
+    {
+        if (celda.Ocupado) return "ocupada";
+        if (inicioSeleccion != null && inicioSeleccion.Value.r == r && inicioSeleccion.Value.c == c) return "seleccionando";
+        return "";
     }
 }
