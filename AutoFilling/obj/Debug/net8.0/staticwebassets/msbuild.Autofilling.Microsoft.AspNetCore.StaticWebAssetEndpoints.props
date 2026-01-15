@@ -1,28 +1,28 @@
 ﻿<Project>
   <ItemGroup>
-    <StaticWebAssetEndpoint Include="_content/AutoFilling/js/visor3d.3ki0f8h3n1.js">
-      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\visor3d.js'))</AssetFile>
-      <Selectors><![CDATA[[]]]></Selectors>
-      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"3ki0f8h3n1"},{"Name":"integrity","Value":"sha256-87yb3knGYX5deIwQLL3XQaKFgeZ9WBKCszflVC7PTgg="},{"Name":"label","Value":"_content/AutoFilling/js/visor3d.js"}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"3869"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u002287yb3knGYX5deIwQLL3XQaKFgeZ9WBKCszflVC7PTgg=\u0022"},{"Name":"Last-Modified","Value":"Wed, 14 Jan 2026 23:25:19 GMT"}]]]></ResponseHeaders>
-    </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/AutoFilling/js/visor3d.js">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\visor3d.js'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>
-      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-87yb3knGYX5deIwQLL3XQaKFgeZ9WBKCszflVC7PTgg="}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"3869"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u002287yb3knGYX5deIwQLL3XQaKFgeZ9WBKCszflVC7PTgg=\u0022"},{"Name":"Last-Modified","Value":"Wed, 14 Jan 2026 23:25:19 GMT"}]]]></ResponseHeaders>
+      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-ctbg6KTPYHZVg6OtwqjW73YZL4CWbacoJKdAF3EZiho="}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"3824"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022ctbg6KTPYHZVg6OtwqjW73YZL4CWbacoJKdAF3EZiho=\u0022"},{"Name":"Last-Modified","Value":"Thu, 15 Jan 2026 00:17:33 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
-    <StaticWebAssetEndpoint Include="_content/AutoFilling/js/visorMock.iat1d69euh.js">
+    <StaticWebAssetEndpoint Include="_content/AutoFilling/js/visor3d.qavgsy7go6.js">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\visor3d.js'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"qavgsy7go6"},{"Name":"integrity","Value":"sha256-ctbg6KTPYHZVg6OtwqjW73YZL4CWbacoJKdAF3EZiho="},{"Name":"label","Value":"_content/AutoFilling/js/visor3d.js"}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"3824"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022ctbg6KTPYHZVg6OtwqjW73YZL4CWbacoJKdAF3EZiho=\u0022"},{"Name":"Last-Modified","Value":"Thu, 15 Jan 2026 00:17:33 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/AutoFilling/js/visorMock.eo42vld7l1.js">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\visorMock.js'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>
-      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"iat1d69euh"},{"Name":"integrity","Value":"sha256-il8PA1qDhYFz1M0LESN48k1CAbt035\u002Bbb9tGOpmATyo="},{"Name":"label","Value":"_content/AutoFilling/js/visorMock.js"}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"3336"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022il8PA1qDhYFz1M0LESN48k1CAbt035\u002Bbb9tGOpmATyo=\u0022"},{"Name":"Last-Modified","Value":"Wed, 14 Jan 2026 23:52:59 GMT"}]]]></ResponseHeaders>
+      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"eo42vld7l1"},{"Name":"integrity","Value":"sha256-0viDr\u002BEbmXPRdqPcN3xQhly0POxvdPVFmGkYM2HtwUQ="},{"Name":"label","Value":"_content/AutoFilling/js/visorMock.js"}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"7454"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u00220viDr\u002BEbmXPRdqPcN3xQhly0POxvdPVFmGkYM2HtwUQ=\u0022"},{"Name":"Last-Modified","Value":"Thu, 15 Jan 2026 15:36:57 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/AutoFilling/js/visorMock.js">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\visorMock.js'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>
-      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-il8PA1qDhYFz1M0LESN48k1CAbt035\u002Bbb9tGOpmATyo="}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"3336"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022il8PA1qDhYFz1M0LESN48k1CAbt035\u002Bbb9tGOpmATyo=\u0022"},{"Name":"Last-Modified","Value":"Wed, 14 Jan 2026 23:52:59 GMT"}]]]></ResponseHeaders>
+      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-0viDr\u002BEbmXPRdqPcN3xQhly0POxvdPVFmGkYM2HtwUQ="}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"7454"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u00220viDr\u002BEbmXPRdqPcN3xQhly0POxvdPVFmGkYM2HtwUQ=\u0022"},{"Name":"Last-Modified","Value":"Thu, 15 Jan 2026 15:36:57 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
   </ItemGroup>
 </Project>

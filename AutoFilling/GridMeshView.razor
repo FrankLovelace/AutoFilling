@@ -1,13 +1,19 @@
 @namespace AutoFilling
+@using Microsoft.JSInterop
 @inject GridState State
+@inject IJSRuntime JS
 @implements IDisposable
 
 <div class="visor-container">
-    <h3>3. Visor Malla (Postes)</h3>
-    <div class="info-text">
-        <span class="dot-sample mand"></span> Obligatorio 
-        <span class="dot-sample off"></span> Opcional (Default)
-        <span class="dot-sample opt"></span> Opcional (Activado)
+    <div class="header-visor">
+        <h3>3. Visor Malla y Entradas</h3>
+        <div class="info-text">
+            <span class="dot-sample mand"></span> Obligatorio 
+            <span class="dot-sample opt"></span> Opcional (ON)
+            <span class="dot-sample off"></span> Opcional (OFF)
+            <span class="line-sample mesh"></span> Malla (Clic -> Entrada)
+            <span class="line-sample ent"></span> Entrada
+        </div>
     </div>
     
     <div class="grid" style="grid-template-columns: repeat(@State.Columnas, 40px);">
@@ -21,11 +27,13 @@
                 <div class="celda-malla @(ocupado ? "ocupado-bg" : "")">
                     @if (ocupado)
                     {
+                        // 1. LÓGICA DE MUROS (¿Vecino vacío?)
                         bool mTop = !EstaOcupado(fr - 1, fc);
                         bool mBottom = !EstaOcupado(fr + 1, fc);
                         bool mLeft = !EstaOcupado(fr, fc - 1);
                         bool mRight = !EstaOcupado(fr, fc + 1);
 
+                        // 2. LÓGICA DE CONTINUIDAD (Para saber si el poste es obligatorio)
                         bool muroTopIzq = TieneMuro(fr, fc - 1, "Top");
                         bool muroLeftArriba = TieneMuro(fr - 1, fc, "Left");
                         bool muroTopDer = TieneMuro(fr, fc + 1, "Top");
@@ -35,42 +43,37 @@
                         bool muroBottomDer = TieneMuro(fr, fc + 1, "Bottom");
                         bool muroRightAbajo = TieneMuro(fr + 1, fc, "Right");
 
-                        if (mTop) { <div class="wall wall-top"></div> }
-                        if (mBottom) { <div class="wall wall-bottom"></div> }
-                        if (mLeft) { <div class="wall wall-left"></div> }
-                        if (mRight) { <div class="wall wall-right"></div> }
+                        // 3. RENDER DE MUROS / ENTRADAS
+                        if (mTop) { <div class="wall wall-top @(EsEntrada(fr, fc, "Top") ? "entrada" : "")" @onclick='() => ToggleEntrada(fr, fc, "Top")'></div> }
+                        if (mBottom) { <div class="wall wall-bottom @(EsEntrada(fr, fc, "Bottom") ? "entrada" : "")" @onclick='() => ToggleEntrada(fr, fc, "Bottom")'></div> }
+                        if (mLeft) { <div class="wall wall-left @(EsEntrada(fr, fc, "Left") ? "entrada" : "")" @onclick='() => ToggleEntrada(fr, fc, "Left")'></div> }
+                        if (mRight) { <div class="wall wall-right @(EsEntrada(fr, fc, "Right") ? "entrada" : "")" @onclick='() => ToggleEntrada(fr, fc, "Right")'></div> }
 
-                        if (mTop || mLeft)
-                        {
-                            bool esRectaH = mTop && muroTopIzq && !mLeft && !muroLeftArriba;
-                            bool esRectaV = mLeft && muroLeftArriba && !mTop && !muroTopIzq;
-                            @RenderPoste(fr, fc, "TL", !(esRectaH || esRectaV))
+                        // 4. RENDER DE POSTES
+                        if (mTop || mLeft) {
+                            bool esRecta = (mTop && muroTopIzq && !mLeft && !muroLeftArriba) || (mLeft && muroLeftArriba && !mTop && !muroTopIzq);
+                            @RenderPoste(fr, fc, "TL", !esRecta)
                         }
-                        if (mTop || mRight)
-                        {
-                            bool esRectaH = mTop && muroTopDer && !mRight && !muroRightArriba;
-                            bool esRectaV = mRight && muroRightArriba && !mTop && !muroTopDer;
-                            @RenderPoste(fr, fc, "TR", !(esRectaH || esRectaV))
+                        if (mTop || mRight) {
+                            bool esRecta = (mTop && muroTopDer && !mRight && !muroRightArriba) || (mRight && muroRightArriba && !mTop && !muroTopDer);
+                            @RenderPoste(fr, fc, "TR", !esRecta)
                         }
-                        if (mBottom || mLeft)
-                        {
-                            bool esRectaH = mBottom && muroBottomIzq && !mLeft && !muroLeftAbajo;
-                            bool esRectaV = mLeft && muroLeftAbajo && !mBottom && !muroBottomIzq;
-                            @RenderPoste(fr, fc, "BL", !(esRectaH || esRectaV))
+                        if (mBottom || mLeft) {
+                            bool esRecta = (mBottom && muroBottomIzq && !mLeft && !muroLeftAbajo) || (mLeft && muroLeftAbajo && !mBottom && !muroBottomIzq);
+                            @RenderPoste(fr, fc, "BL", !esRecta)
                         }
-                        if (mBottom || mRight)
-                        {
-                            bool esRectaH = mBottom && muroBottomDer && !mRight && !muroRightAbajo;
-                            bool esRectaV = mRight && muroRightAbajo && !mBottom && !muroBottomDer;
-                            @RenderPoste(fr, fc, "BR", !(esRectaH || esRectaV))
+                        if (mBottom || mRight) {
+                            bool esRecta = (mBottom && muroBottomDer && !mRight && !muroRightAbajo) || (mRight && muroRightAbajo && !mBottom && !muroBottomDer);
+                            @RenderPoste(fr, fc, "BR", !esRecta)
                         }
 
-                        // 5. BRACKETS
+                        // 5. BRACKETS (Esquinas visuales)
                         if (mTop && mLeft) { <div class="bracket bracket-tl"></div> }
                         if (mTop && mRight) { <div class="bracket bracket-tr"></div> }
                         if (mBottom && mLeft) { <div class="bracket bracket-bl"></div> }
                         if (mBottom && mRight) { <div class="bracket bracket-br"></div> }
 
+                        // 6. BRACKETS INTERNOS (Axilas)
                         if (mRight && EstaOcupado(fr - 1, fc) && EstaOcupado(fr - 1, fc + 1)) { <div class="bracket bracket-inner-tr"></div> }
                         if (mLeft && EstaOcupado(fr - 1, fc) && EstaOcupado(fr - 1, fc - 1)) { <div class="bracket bracket-inner-tl"></div> }
                         if (mRight && EstaOcupado(fr + 1, fc) && EstaOcupado(fr + 1, fc + 1)) { <div class="bracket bracket-inner-br"></div> }
@@ -83,14 +86,49 @@
 </div>
 
 @code {
+    private IJSObjectReference? module;
+
     protected override void OnInitialized() => State.OnChange += StateHasChanged;
     public void Dispose() => State.OnChange -= StateHasChanged;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            module = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/AutoFilling/js/visorMock.js");
+        }
+    }
+
+    // --- ACCIONES CON TRANSMISIÓN 3D ---
+
+    async Task Transmitir()
+    {
+        if (module != null)
+        {
+            var json = GridSerializer.GenerarJson(State);
+            await module.InvokeVoidAsync("transmitirDatos", json);
+        }
+    }
+
+    async Task TogglePoste(int r, int c, string pos)
+    {
+        State.TogglePoste(r, c, pos);
+        await Transmitir();
+    }
+
+    async Task ToggleEntrada(int r, int c, string lado)
+    {
+        State.ToggleEntrada(r, c, lado);
+        await Transmitir();
+    }
+
+    // --- HELPERS LÓGICOS ---
 
     bool EstaOcupado(int r, int c) => State.Rectangulos.Any(rect => r >= rect.R1 && r <= rect.R2 && c >= rect.C1 && c <= rect.C2);
 
     bool TieneMuro(int r, int c, string lado)
     {
-        if (!EstaOcupado(r, c)) return false; 
+        if (!EstaOcupado(r, c)) return false;
         if (lado == "Top") return !EstaOcupado(r - 1, c);
         if (lado == "Bottom") return !EstaOcupado(r + 1, c);
         if (lado == "Left") return !EstaOcupado(r, c - 1);
@@ -98,75 +136,73 @@
         return false;
     }
 
-    void TogglePoste(int r, int c, string pos) => State.TogglePoste(r, c, pos);
+    bool EsEntrada(int r, int c, string lado) => State.Entradas.Contains($"{r},{c},{lado}");
+
+    // --- FRAGMENTO DE RENDER PARA POSTES ---
 
     RenderFragment RenderPoste(int r, int c, string pos, bool obligatorio) => __builder =>
     {
         bool activoManual = State.PostesActivos.Contains($"{r},{c},{pos}");
-        
         string clasePos = $"post-{pos.ToLower()}";
-        string claseTipo;
-
-        if (obligatorio) 
-        {
-            claseTipo = "post-mand"; 
-        }
-        else if (activoManual)
-        {
-            claseTipo = "post-opt"; 
-        }
-        else 
-        {
-            claseTipo = "post-inactive"; 
-        }
+        string claseTipo = obligatorio ? "post-mand" : (activoManual ? "post-opt" : "post-inactive");
 
         <div class="@($"post {clasePos} {claseTipo}")" 
-             @onclick='() => { if(!obligatorio) TogglePoste(r, c, pos); }'
-             @onclick:stopPropagation="true"
-             title="@(obligatorio ? "Obligatorio" : "Clic para activar/desactivar")">
+             @onclick='async () => { if(!obligatorio) await TogglePoste(r, c, pos); }'
+             @onclick:stopPropagation="true">
         </div>
     };
 }
 
 <style>
-    .visor-container { background: #fff; padding: 10px; border: 1px solid #ccc; margin-top: 10px; }
-    .info-text { font-size: 0.8em; color: #666; margin-bottom: 5px; }
+    .visor-container { background: #fff; padding: 15px; border: 1px solid #ccc; margin-top: 10px; font-family: sans-serif; }
+    .header-visor { margin-bottom: 10px; }
+    .info-text { font-size: 0.75em; color: #666; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
     
-    .dot-sample { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: middle;}
+    .dot-sample { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
     .dot-sample.mand { background: #b71c1c; }
     .dot-sample.opt { background: #fff; border: 2px solid #b71c1c; }
     .dot-sample.off { background: #ccc; }
+    
+    .line-sample { display: inline-block; width: 15px; height: 3px; }
+    .line-sample.mesh { background: #d32f2f; }
+    .line-sample.ent { background: #4caf50; }
 
     .grid { display: grid; gap: 0; background: #eee; width: fit-content; border: 1px solid #ddd;}
     .celda-malla { height: 40px; position: relative; box-sizing: border-box; }
     .ocupado-bg { background-color: #f0f4f8; }
 
-    .wall { position: absolute; background-color: #d32f2f; z-index: 10; }
+    /* MUROS Y ENTRADAS */
+    .wall { position: absolute; z-index: 10; cursor: pointer; transition: 0.2s; }
+    .wall:not(.entrada) { background-color: #d32f2f; }
+    .wall.entrada { background-color: #4caf50; z-index: 11; }
+    
     .wall-top { top: 0; left: 0; right: 0; height: 4px; }
     .wall-bottom { bottom: 0; left: 0; right: 0; height: 4px; }
     .wall-left { top: 0; bottom: 0; left: 0; width: 4px; }
     .wall-right { top: 0; bottom: 0; right: 0; width: 4px; }
-
-    .post { position: absolute; width: 10px; height: 10px; border-radius: 50%; z-index: 20; cursor: pointer; transition: transform 0.1s;}
     
+    .wall:hover { filter: brightness(1.5); transform: scaleY(1.5); }
+    .wall-left:hover, .wall-right:hover { transform: scaleX(1.5); }
+
+    /* POSTES */
+    .post { position: absolute; width: 10px; height: 10px; border-radius: 50%; z-index: 20; cursor: pointer; transition: 0.1s;}
     .post-mand { background-color: #b71c1c; cursor: default; }
-    
     .post-opt { background-color: white; border: 2px solid #b71c1c; width: 8px; height: 8px;}
-    .post-opt:hover { transform: scale(1.3); }
+    .post-inactive { background-color: #ccc; }
+    
+    .post:hover { transform: scale(1.3); }
+    .post-tl { top: -5px; left: -5px; }
+    .post-tr { top: -5px; right: -5px; }
+    .post-bl { bottom: -5px; left: -5px; }
+    .post-br { bottom: -5px; right: -5px; }
 
-    .post-inactive { background-color: #ccc; opacity: 1; } 
-    .post-inactive:hover { background-color: #aaa; transform: scale(1.3); }
-
-    .post-tl { top: -4px; left: -4px; }
-    .post-tr { top: -4px; right: -4px; }
-    .post-bl { bottom: -4px; left: -4px; }
-    .post-br { bottom: -4px; right: -4px; }
-
+    /* BRACKETS */
     .bracket { position: absolute; width: 12px; height: 12px; border-color: black; border-style: solid; border-width: 0; z-index: 15; opacity: 0.8; pointer-events: none;}
     .bracket-tl { top: 6px; left: 6px; border-top-width: 3px; border-left-width: 3px; }
     .bracket-tr { top: 6px; right: 6px; border-top-width: 3px; border-right-width: 3px; }
     .bracket-br { bottom: 6px; right: 6px; border-bottom-width: 3px; border-right-width: 3px; }
     .bracket-bl { bottom: 6px; left: 6px; border-bottom-width: 3px; border-left-width: 3px; }
+    
     .bracket-inner-tr { top: 6px; right: 6px; border-top-width: 3px; border-left-width: 3px; }
     .bracket-inner-tl { top: 6px; left: 6px; border-top-width: 3px; border-right-width: 3px; }
     .bracket-inner-br { bottom: 6px; right: 6px; border-bottom-width: 3px; border-left-width: 3px; }

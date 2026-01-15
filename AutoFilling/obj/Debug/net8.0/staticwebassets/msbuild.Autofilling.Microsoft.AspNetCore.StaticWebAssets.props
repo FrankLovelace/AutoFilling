@@ -12,12 +12,12 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>3ki0f8h3n1</Fingerprint>
-      <Integrity>87yb3knGYX5deIwQLL3XQaKFgeZ9WBKCszflVC7PTgg=</Integrity>
+      <Fingerprint>qavgsy7go6</Fingerprint>
+      <Integrity>ctbg6KTPYHZVg6OtwqjW73YZL4CWbacoJKdAF3EZiho=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <FileLength>3869</FileLength>
-      <LastWriteTime>Wed, 14 Jan 2026 23:25:19 GMT</LastWriteTime>
+      <FileLength>3824</FileLength>
+      <LastWriteTime>Thu, 15 Jan 2026 00:17:33 GMT</LastWriteTime>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\visor3d.js'))</OriginalItemSpec>
     </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\visorMock.js'))">
@@ -32,12 +32,12 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>iat1d69euh</Fingerprint>
-      <Integrity>il8PA1qDhYFz1M0LESN48k1CAbt035+bb9tGOpmATyo=</Integrity>
+      <Fingerprint>eo42vld7l1</Fingerprint>
+      <Integrity>0viDr+EbmXPRdqPcN3xQhly0POxvdPVFmGkYM2HtwUQ=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <FileLength>3336</FileLength>
-      <LastWriteTime>Wed, 14 Jan 2026 23:52:59 GMT</LastWriteTime>
+      <FileLength>7454</FileLength>
+      <LastWriteTime>Thu, 15 Jan 2026 15:36:57 GMT</LastWriteTime>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\visorMock.js'))</OriginalItemSpec>
     </StaticWebAsset>
   </ItemGroup>

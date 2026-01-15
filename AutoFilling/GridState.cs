@@ -21,6 +21,16 @@ namespace AutoFilling
 
         public HashSet<string> PostesActivos { get; private set; } = new();
 
+        public HashSet<string> Entradas { get; private set; } = new();
+
+public void ToggleEntrada(int r, int c, string lado)
+{
+    string key = $"{r},{c},{lado}";
+    if (Entradas.Contains(key)) Entradas.Remove(key);
+    else Entradas.Add(key);
+    NotificarCambios();
+}
+
         public event Action? OnChange;
 
         public void ActualizarDimensiones(int filas, int cols)
