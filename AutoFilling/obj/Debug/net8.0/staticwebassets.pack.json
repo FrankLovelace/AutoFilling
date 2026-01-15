@@ -1,16 +1,12 @@
 {
   "Files": [
     {
-      "Id": "C:\\Users\\alexa\\Downloads\\autofilling\\AutoFilling\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\AutoFilling.bundle.scp.css",
-      "PackagePath": "staticwebassets\\AutoFilling.e5f0eluhmw.bundle.scp.css"
+      "Id": "C:\\Users\\alexa\\Downloads\\autofilling\\AutoFilling\\wwwroot\\js\\visor3d.js",
+      "PackagePath": "staticwebassets\\js\\visor3d.js"
     },
     {
-      "Id": "C:\\Users\\alexa\\Downloads\\autofilling\\AutoFilling\\wwwroot\\background.png",
-      "PackagePath": "staticwebassets\\background.png"
-    },
-    {
-      "Id": "C:\\Users\\alexa\\Downloads\\autofilling\\AutoFilling\\wwwroot\\exampleJsInterop.js",
-      "PackagePath": "staticwebassets\\exampleJsInterop.js"
+      "Id": "C:\\Users\\alexa\\Downloads\\autofilling\\AutoFilling\\wwwroot\\js\\visorMock.js",
+      "PackagePath": "staticwebassets\\js\\visorMock.js"
     },
     {
       "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.AutoFilling.Microsoft.AspNetCore.StaticWebAssetEndpoints.props",

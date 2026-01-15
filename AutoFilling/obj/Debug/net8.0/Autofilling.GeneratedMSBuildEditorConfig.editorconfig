@@ -24,10 +24,6 @@ build_property.EnableCodeStyleSeverity =
 build_metadata.AdditionalFiles.TargetPath = R3JpZEJhc2VWaWV3LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/alexa/Downloads/autofilling/AutoFilling/GridEditor.razor]
-build_metadata.AdditionalFiles.TargetPath = R3JpZEVkaXRvci5yYXpvcg==
-build_metadata.AdditionalFiles.CssScope = 
-
 [C:/Users/alexa/Downloads/autofilling/AutoFilling/GridEditorInput.razor]
 build_metadata.AdditionalFiles.TargetPath = R3JpZEVkaXRvcklucHV0LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
@@ -36,10 +32,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = R3JpZE1lc2hWaWV3LnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/alexa/Downloads/autofilling/AutoFilling/Visor3D.razor]
+build_metadata.AdditionalFiles.TargetPath = Vmlzb3IzRC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/alexa/Downloads/autofilling/AutoFilling/_Imports.razor]
 build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/alexa/Downloads/autofilling/AutoFilling/Component1.razor]
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50MS5yYXpvcg==
-build_metadata.AdditionalFiles.CssScope = b-1rpwg1261w

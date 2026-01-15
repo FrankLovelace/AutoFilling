@@ -1,5 +1,5 @@
-import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
-import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 let scene, camera, renderer, controls;
 let objetos = [];
@@ -84,4 +84,16 @@ export function renderJSON(jsonString) {
             objetos.push(pivot);
         }
     });
+}
+const canal = new BroadcastChannel('canal_grid_3d');
+
+export function transmitirDatos(jsonString) {
+    canal.postMessage(jsonString);
+}
+
+export function iniciarEscucha() {
+    canal.onmessage = (evento) => {
+        const jsonRecibido = evento.data;
+        renderJSON(jsonRecibido); 
+    };
 }

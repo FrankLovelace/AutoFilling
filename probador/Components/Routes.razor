@@ -1,6 +1,14 @@
-﻿<Router AppAssembly="typeof(Program).Assembly">
+﻿@using AutoFilling
+
+<Router AppAssembly="typeof(Program).Assembly" 
+        AdditionalAssemblies="new[] { typeof(GridState).Assembly }"> 
+    
     <Found Context="routeData">
         <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
+
+    <NotFound>
+        <p>Lo siento, no hay nada en esta dirección.</p>
+    </NotFound>
 </Router>

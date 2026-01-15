@@ -1,11 +1,3 @@
-C:\Users\alexa\Downloads\autofilling\probador\obj\Debug\net8.0\probador.csproj.AssemblyReference.cache
-C:\Users\alexa\Downloads\autofilling\probador\obj\Debug\net8.0\rpswa.dswa.cache.json
-C:\Users\alexa\Downloads\autofilling\probador\obj\Debug\net8.0\probador.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\alexa\Downloads\autofilling\probador\obj\Debug\net8.0\probador.AssemblyInfoInputs.cache
-C:\Users\alexa\Downloads\autofilling\probador\obj\Debug\net8.0\probador.AssemblyInfo.cs
-C:\Users\alexa\Downloads\autofilling\probador\obj\Debug\net8.0\probador.csproj.CoreCompileInputs.cache
-C:\Users\alexa\Downloads\autofilling\probador\obj\Debug\net8.0\probador.MvcApplicationPartsAssemblyInfo.cache
-C:\Users\alexa\Downloads\autofilling\probador\obj\Debug\net8.0\probador.sourcelink.json
 C:\Users\alexa\Downloads\autofilling\probador\bin\Debug\net8.0\AutoFilling.staticwebassets.runtime.json
 C:\Users\alexa\Downloads\autofilling\probador\bin\Debug\net8.0\AutoFilling.staticwebassets.endpoints.json
 C:\Users\alexa\Downloads\autofilling\probador\bin\Debug\net8.0\appsettings.Development.json
@@ -29,6 +21,14 @@ C:\Users\alexa\Downloads\autofilling\probador\bin\Debug\net8.0\Microsoft.Extensi
 C:\Users\alexa\Downloads\autofilling\probador\bin\Debug\net8.0\Microsoft.JSInterop.dll
 C:\Users\alexa\Downloads\autofilling\probador\bin\Debug\net8.0\AutoFilling.dll
 C:\Users\alexa\Downloads\autofilling\probador\bin\Debug\net8.0\AutoFilling.pdb
+C:\Users\alexa\Downloads\autofilling\probador\obj\Debug\net8.0\probador.csproj.AssemblyReference.cache
+C:\Users\alexa\Downloads\autofilling\probador\obj\Debug\net8.0\rpswa.dswa.cache.json
+C:\Users\alexa\Downloads\autofilling\probador\obj\Debug\net8.0\probador.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\alexa\Downloads\autofilling\probador\obj\Debug\net8.0\probador.AssemblyInfoInputs.cache
+C:\Users\alexa\Downloads\autofilling\probador\obj\Debug\net8.0\probador.AssemblyInfo.cs
+C:\Users\alexa\Downloads\autofilling\probador\obj\Debug\net8.0\probador.csproj.CoreCompileInputs.cache
+C:\Users\alexa\Downloads\autofilling\probador\obj\Debug\net8.0\probador.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\alexa\Downloads\autofilling\probador\obj\Debug\net8.0\probador.sourcelink.json
 C:\Users\alexa\Downloads\autofilling\probador\obj\Debug\net8.0\rjimswa.dswa.cache.json
 C:\Users\alexa\Downloads\autofilling\probador\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
 C:\Users\alexa\Downloads\autofilling\probador\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json

@@ -1,6 +1,9 @@
 @namespace AutoFilling
+@using Microsoft.JSInterop
 @inject GridState State
 @implements IDisposable
+@inject IJSRuntime JS
+@using AutoFilling 
 
 <div class="editor-container">
     <h3>1. Editor (Input)</h3>
@@ -64,7 +67,7 @@
     protected override void OnInitialized() => State.OnChange += StateHasChanged;
     public void Dispose() => State.OnChange -= StateHasChanged;
 
-    void Click(int r, int c)
+    async Task Click(int r, int c)
     {
         if (ObtenerRectangulo(r,c) != null) return; 
 
@@ -90,6 +93,12 @@
 
             seleccion = null;
         }
+
+        if (module != null)
+        {
+            var json = GridSerializer.GenerarJson(State);
+            await module.InvokeVoidAsync("transmitirDatos", json);
+        }
     }
 
     bool HayColision(int r1, int c1, int r2, int c2)
@@ -110,6 +119,23 @@
     {
         return State.Rectangulos.FirstOrDefault(rect => r >= rect.R1 && r <= rect.R2 && c >= rect.C1 && c <= rect.C2);
     }
+    private IJSObjectReference? module;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                module = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/AutoFilling/js/visorMock.js");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("⚠️ ERROR CARGANDO JS EN EDITOR: " + ex.Message);
+            }
+        }
+    }
+
 
     bool EsSeleccion(int r, int c) => seleccion != null && seleccion.Value.r == r && seleccion.Value.c == c;
     void CambiarF(ChangeEventArgs e) => State.ActualizarDimensiones(int.Parse(e.Value?.ToString() ?? "0"), State.Columnas);

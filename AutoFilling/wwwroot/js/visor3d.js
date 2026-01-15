@@ -27,14 +27,12 @@ export function iniciarVisor(canvasId) {
     controls.enableDamping = true;
     controls.target.set(10, 0, 10); 
 
-    // 5. LUCES
     const luzAmbiente = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(luzAmbiente);
     const luzDir = new THREE.DirectionalLight(0xffffff, 0.8);
     luzDir.position.set(10, 20, 10);
     scene.add(luzDir);
 
-    // BUCLE DE ANIMACIÓN
     function animar() {
         requestAnimationFrame(animar);
         controls.update();
